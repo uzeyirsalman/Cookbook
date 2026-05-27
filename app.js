@@ -149,6 +149,7 @@ let listenersSet = false;
 function setupRegisteredButtons() {
     if (listenersSet) return;
     listenersSet = true;
+    console.log("Binding click listeners to DOM elements...");
 
     document.getElementById('home-btn').addEventListener('click', () => displayTags());
     document.getElementById('random-recipe-btn').addEventListener('click', handleRandomClick);
@@ -170,19 +171,23 @@ function setupRegisteredButtons() {
     document.getElementById('import-file-input').addEventListener('change', handleImportBackup);
 
     // Google Auth actions
+    console.log("Registering Google login-btn click listener...");
     document.getElementById('login-btn').addEventListener('click', handleGoogleSignIn);
     document.getElementById('logout-btn').addEventListener('click', handleSignOut);
 }
 
 // --- GOOGLE AUTHENTICATION ACTIONS ---
 async function handleGoogleSignIn() {
+    console.log("handleGoogleSignIn triggered by click!");
     const provider = new GoogleAuthProvider();
     try {
-        await signInWithPopup(auth, provider);
+        console.log("Launching Firebase signInWithPopup...");
+        const result = await signInWithPopup(auth, provider);
+        console.log("Sign in success! User:", result.user.email);
         showNotification("Signed in successfully!");
     } catch (error) {
         console.error("Google sign in failed:", error);
-        showNotification("Failed to sign in with Google.");
+        showNotification(`Sign in failed: ${error.message || error}`);
     }
 }
 
