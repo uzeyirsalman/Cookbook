@@ -42,6 +42,7 @@ let appState = {
     currentUserId: null,
     currentUserEmail: null,
     isGoogleUser: false,
+    showOnlyOwnRecipes: false, // Tracks whether the user is filtering only their own recipes
     allRecipes: [],
     unsubscribeFromRecipes: null,
     unsubscribeFromLogs: null
@@ -107,25 +108,41 @@ function handleAuthentication() {
             // Show author features
             document.getElementById('add-recipe-btn').classList.remove('hidden');
 
+            // Settings gear & Log Listener EXCLUSIVE to Admin
+            if (appState.currentUserEmail === 'uzeyirsalman@gmail.com') {
+                document.getElementById('settings-btn').classList.remove('hidden');
+                listenForActivityLogs();
+            } else {
+                document.getElementById('settings-btn').classList.add('hidden');
+                if (appState.unsubscribeFromLogs) {
+                    appState.unsubscribeFromLogs();
+                }
+            }
+
             setupRegisteredButtons();
 
             // Run author migration to uzeyirsalman@gmail.com
             await migrateExistingRecipes();
 
             listenForRecipes(router);
-            listenForActivityLogs();
         } else {
             // Guest User (anonymous or logged out)
             appState.currentUserId = user ? user.uid : null;
             appState.currentUserEmail = "Guest";
             appState.isGoogleUser = false;
+            appState.showOnlyOwnRecipes = false; // Reset filter
 
             // UI updates
             document.getElementById('login-btn').classList.remove('hidden');
             document.getElementById('user-profile').classList.add('hidden');
             
-            // Hide author features
+            // Hide author features & settings gear
             document.getElementById('add-recipe-btn').classList.add('hidden');
+            document.getElementById('settings-btn').classList.add('hidden');
+
+            if (appState.unsubscribeFromLogs) {
+                appState.unsubscribeFromLogs();
+            }
 
             setupRegisteredButtons();
 
@@ -138,7 +155,6 @@ function handleAuthentication() {
                 }
             } else {
                 listenForRecipes(router);
-                listenForActivityLogs();
             }
         }
     });
@@ -174,6 +190,20 @@ function setupRegisteredButtons() {
     console.log("Registering Google login-btn click listener...");
     document.getElementById('login-btn').addEventListener('click', handleGoogleSignIn);
     document.getElementById('logout-btn').addEventListener('click', handleSignOut);
+
+    // "My Recipes Only" filter checkbox listener
+    const filterCheckbox = document.getElementById('own-recipes-filter');
+    if (filterCheckbox) {
+        filterCheckbox.addEventListener('change', (e) => {
+            appState.showOnlyOwnRecipes = e.target.checked;
+            
+            // Re-render the active tag recipe list to apply the filter instantly
+            const pathParts = window.location.pathname.split('/').filter(p => p);
+            if (pathParts[0] === 'tag' && pathParts[1]) {
+                displayRecipesByTag(decodeURIComponent(pathParts[1]), false);
+            }
+        });
+    }
 }
 
 // --- GOOGLE AUTHENTICATION ACTIONS ---
@@ -325,6 +355,7 @@ function openSettingsModal() {
     if (modal) modal.classList.remove('hidden');
 }
 
+// Ensure non-admins cannot access settings modal
 function closeSettingsModal() {
     const modal = document.getElementById('settings-modal');
     if (modal) modal.classList.add('hidden');
@@ -366,9 +397,9 @@ async function handleImportBackup(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Only Google Auth users can write/import recipes
-    if (!appState.isGoogleUser) {
-        showNotification("Permission denied: Sign in with Google to import recipes.");
+    // Only Google Auth admin can write/import recipes
+    if (!appState.isGoogleUser || appState.currentUserEmail !== 'uzeyirsalman@gmail.com') {
+        showNotification("Permission denied: Settings are exclusive to the admin.");
         return;
     }
 
@@ -638,26 +669,38 @@ function displayRecipesByTag(tag, updateUrl = true) {
         history.pushState({ view: 'recipeList', tag: tag }, '', url);
     }
 
-    const recipes = appState.allRecipes.filter(recipe => recipe.tags && recipe.tags.includes(tag));
-    const container = document.getElementById('recipe-list-container');
+    // Toggle filter bar display
+    const filterBar = document.getElementById('filter-bar');
+    const filterCheckbox = document.getElementById('own-recipes-filter');
     
-    container.innerHTML = '';
-    
-    const header = document.createElement('div');
-    header.className = 'recipe-list-header';
-    
-    const listDiv = document.createElement('div');
-    listDiv.id = 'recipe-list';
-    
-    recipes.forEach(recipe => {
-        const item = document.createElement('div');
-        item.className = 'recipe-item';
-        item.innerHTML = `<h3>${recipe.title}</h3>`;
-        item.addEventListener('click', () => displayRecipeDetails(recipe.id));
-        listDiv.appendChild(item);
-    });
+    if (appState.isGoogleUser) {
+        filterBar.classList.remove('hidden');
+        filterCheckbox.checked = appState.showOnlyOwnRecipes;
+    } else {
+        filterBar.classList.add('hidden');
+    }
 
-    container.appendChild(listDiv);
+    // Filter recipes based on tag and conditional ownership toggle
+    let recipes = appState.allRecipes.filter(recipe => recipe.tags && recipe.tags.includes(tag));
+    if (appState.isGoogleUser && appState.showOnlyOwnRecipes) {
+        recipes = recipes.filter(recipe => recipe.userId === appState.currentUserId);
+    }
+
+    const listDiv = document.getElementById('recipe-list');
+    listDiv.innerHTML = '';
+
+    if (recipes.length === 0) {
+        listDiv.innerHTML = `<p class="empty-state">No recipes found.</p>`;
+    } else {
+        recipes.forEach(recipe => {
+            const item = document.createElement('div');
+            item.className = 'recipe-item';
+            item.innerHTML = `<h3>${recipe.title}</h3>`;
+            item.addEventListener('click', () => displayRecipeDetails(recipe.id));
+            listDiv.appendChild(item);
+        });
+    }
+
     showView('recipe-list-container');
 }
 
