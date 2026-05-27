@@ -108,6 +108,16 @@ function handleAuthentication() {
             // Show author features
             document.getElementById('add-recipe-btn').classList.remove('hidden');
 
+            // Show global filter bar for logged-in users
+            const filterBar = document.getElementById('filter-bar');
+            if (filterBar) {
+                filterBar.classList.remove('hidden');
+                const filterCheckbox = document.getElementById('own-recipes-filter');
+                if (filterCheckbox) {
+                    filterCheckbox.checked = appState.showOnlyOwnRecipes;
+                }
+            }
+
             // Settings gear & Log Listener EXCLUSIVE to Admin
             if (appState.currentUserEmail === 'uzeyirsalman@gmail.com') {
                 document.getElementById('settings-btn').classList.remove('hidden');
@@ -136,6 +146,12 @@ function handleAuthentication() {
             document.getElementById('login-btn').classList.remove('hidden');
             document.getElementById('user-profile').classList.add('hidden');
             
+            // Hide global filter bar
+            const filterBar = document.getElementById('filter-bar');
+            if (filterBar) {
+                filterBar.classList.add('hidden');
+            }
+
             // Hide author features & settings gear
             document.getElementById('add-recipe-btn').classList.add('hidden');
             document.getElementById('settings-btn').classList.add('hidden');
@@ -197,11 +213,8 @@ function setupRegisteredButtons() {
         filterCheckbox.addEventListener('change', (e) => {
             appState.showOnlyOwnRecipes = e.target.checked;
             
-            // Re-render the active tag recipe list to apply the filter instantly
-            const pathParts = window.location.pathname.split('/').filter(p => p);
-            if (pathParts[0] === 'tag' && pathParts[1]) {
-                displayRecipesByTag(decodeURIComponent(pathParts[1]), false);
-            }
+            // Re-render the active view instantly by calling router
+            router();
         });
     }
 }
@@ -632,8 +645,13 @@ function displayTags(updateUrl = true) {
         history.pushState({ view: 'tags' }, '', '/');
     }
 
+    let recipes = appState.allRecipes;
+    if (appState.isGoogleUser && appState.showOnlyOwnRecipes) {
+        recipes = recipes.filter(recipe => recipe.userId === appState.currentUserId);
+    }
+
     const tagCounts = {};
-    appState.allRecipes.forEach(recipe => {
+    recipes.forEach(recipe => {
         (recipe.tags || []).forEach(tag => {
             const trimmedTag = tag.trim();
             if (trimmedTag) {
@@ -667,17 +685,6 @@ function displayRecipesByTag(tag, updateUrl = true) {
     if (updateUrl) {
         const url = `/tag/${encodeURIComponent(tag)}`;
         history.pushState({ view: 'recipeList', tag: tag }, '', url);
-    }
-
-    // Toggle filter bar display
-    const filterBar = document.getElementById('filter-bar');
-    const filterCheckbox = document.getElementById('own-recipes-filter');
-    
-    if (appState.isGoogleUser) {
-        filterBar.classList.remove('hidden');
-        filterCheckbox.checked = appState.showOnlyOwnRecipes;
-    } else {
-        filterBar.classList.add('hidden');
     }
 
     // Filter recipes based on tag and conditional ownership toggle
@@ -817,9 +824,12 @@ function handleSearch(event) {
     if (event.key === 'Enter') {
         const searchTerm = event.target.value.trim();
         if (searchTerm) {
-            const matchedRecipes = appState.allRecipes.filter(recipe =>
+            let matchedRecipes = appState.allRecipes.filter(recipe =>
                 recipe.title.toLowerCase().includes(searchTerm.toLowerCase())
             );
+            if (appState.isGoogleUser && appState.showOnlyOwnRecipes) {
+                matchedRecipes = matchedRecipes.filter(recipe => recipe.userId === appState.currentUserId);
+            }
             displaySearchResults(matchedRecipes, searchTerm);
         } else {
             displayTags();
