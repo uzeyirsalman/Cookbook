@@ -4,13 +4,12 @@ import { getFirestore, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc
 
 // --- CONFIG & INITIALIZATION ---
 const firebaseConfig = {
-    apiKey: "AIzaSyBSO5HnxSOMXRlWxv4eFEAXP4RkNMTp_eY",
-    authDomain: "recipebook-usle.firebaseapp.com",
-    projectId: "recipebook-usle",
-    storageBucket: "recipebook-usle.firebasestorage.app",
-    messagingSenderId: "477077851825",
-    appId: "1:477077851825:web:c96495c3742e3aba171c90",
-    measurementId: "G-TYBV7FY7FS"
+    apiKey: "AIzaSyCaR1QOk6_EOtPeDwqS4NAKc3pRHWlaTAM",
+    authDomain: "cookbook-usle.firebaseapp.com",
+    projectId: "cookbook-usle",
+    storageBucket: "cookbook-usle.firebasestorage.app",
+    messagingSenderId: "817755572002",
+    appId: "1:817755572002:web:85a543cea320842294877b"
 };
 
 const app = initializeApp(firebaseConfig);
