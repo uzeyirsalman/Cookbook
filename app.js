@@ -1,6 +1,27 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { 
+    getAuth, 
+    onAuthStateChanged, 
+    signInAnonymously, 
+    signInWithCustomToken,
+    signInWithPopup,
+    GoogleAuthProvider,
+    signOut
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { 
+    getFirestore, 
+    collection, 
+    doc, 
+    onSnapshot, 
+    addDoc, 
+    updateDoc, 
+    deleteDoc, 
+    serverTimestamp, 
+    setDoc,
+    query,
+    orderBy,
+    limit
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- CONFIG & INITIALIZATION ---
 const firebaseConfig = {
@@ -19,8 +40,11 @@ const db = getFirestore(app);
 // --- STATE MANAGEMENT ---
 let appState = {
     currentUserId: null,
+    currentUserEmail: null,
+    isGoogleUser: false,
     allRecipes: [],
     unsubscribeFromRecipes: null,
+    unsubscribeFromLogs: null
 };
 
 window.exportData = appState; // Enable downloading
@@ -65,37 +89,222 @@ function setupScrollListener() {
 
 function handleAuthentication() {
     onAuthStateChanged(auth, async (user) => {
-        if (user) {
+        if (user && !user.isAnonymous) {
+            // Google Authenticated User (Author)
             appState.currentUserId = user.uid;
-            
-            // --- EVENT LISTENERS ---
-            document.getElementById('home-btn').addEventListener('click', () => displayTags());
-            document.getElementById('random-recipe-btn').addEventListener('click', handleRandomClick);
-            document.getElementById('add-recipe-btn').addEventListener('click', () => showAddRecipeForm());
-            document.getElementById('recipe-form').addEventListener('submit', handleFormSubmit);
-            document.getElementById('search-btn').addEventListener('click', toggleSearchInput);
-            document.getElementById('search-input').addEventListener('keydown', handleSearch);
+            appState.currentUserEmail = user.email || "Google User";
+            appState.isGoogleUser = true;
 
-            // Settings/Backup listeners
-            document.getElementById('settings-btn').addEventListener('click', openSettingsModal);
-            document.getElementById('settings-close-btn').addEventListener('click', closeSettingsModal);
-            document.getElementById('export-backup-btn').addEventListener('click', handleExportBackup);
-            document.getElementById('import-file-input').addEventListener('change', handleImportBackup);
+            // UI updates
+            document.getElementById('login-btn').classList.add('hidden');
+            document.getElementById('user-profile').classList.remove('hidden');
+            
+            const avatar = document.getElementById('user-avatar');
+            if (avatar) {
+                avatar.src = user.photoURL || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z' fill='%236c757d'/%3E%3C/svg%3E";
+            }
+            
+            // Show author features
+            document.getElementById('add-recipe-btn').classList.remove('hidden');
+
+            setupRegisteredButtons();
+
+            // Run author migration to uzeyirsalman@gmail.com
+            await migrateExistingRecipes();
 
             listenForRecipes(router);
+            listenForActivityLogs();
         } else {
-            try {
-                const initialAuthToken = null; 
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
+            // Guest User (anonymous or logged out)
+            appState.currentUserId = user ? user.uid : null;
+            appState.currentUserEmail = "Guest";
+            appState.isGoogleUser = false;
+
+            // UI updates
+            document.getElementById('login-btn').classList.remove('hidden');
+            document.getElementById('user-profile').classList.add('hidden');
+            
+            // Hide author features
+            document.getElementById('add-recipe-btn').classList.add('hidden');
+
+            setupRegisteredButtons();
+
+            if (!user) {
+                try {
                     await signInAnonymously(auth);
+                } catch (error) {
+                    console.error("Anonymous authentication failed:", error);
+                    showNotification("Guest authentication failed.");
                 }
-            } catch (error) {
-                console.error("Authentication failed:", error);
-                showNotification("Authentication failed.");
+            } else {
+                listenForRecipes(router);
+                listenForActivityLogs();
             }
         }
+    });
+}
+
+// --- REGISTER BUTTON EVENT LISTENERS ---
+let listenersSet = false;
+function setupRegisteredButtons() {
+    if (listenersSet) return;
+    listenersSet = true;
+
+    document.getElementById('home-btn').addEventListener('click', () => displayTags());
+    document.getElementById('random-recipe-btn').addEventListener('click', handleRandomClick);
+    document.getElementById('add-recipe-btn').addEventListener('click', () => {
+        if (appState.isGoogleUser) {
+            showAddRecipeForm();
+        } else {
+            showNotification("Please sign in with Google to add recipes.");
+        }
+    });
+    document.getElementById('recipe-form').addEventListener('submit', handleFormSubmit);
+    document.getElementById('search-btn').addEventListener('click', toggleSearchInput);
+    document.getElementById('search-input').addEventListener('keydown', handleSearch);
+
+    // Settings/Backup listeners
+    document.getElementById('settings-btn').addEventListener('click', openSettingsModal);
+    document.getElementById('settings-close-btn').addEventListener('click', closeSettingsModal);
+    document.getElementById('export-backup-btn').addEventListener('click', handleExportBackup);
+    document.getElementById('import-file-input').addEventListener('change', handleImportBackup);
+
+    // Google Auth actions
+    document.getElementById('login-btn').addEventListener('click', handleGoogleSignIn);
+    document.getElementById('logout-btn').addEventListener('click', handleSignOut);
+}
+
+// --- GOOGLE AUTHENTICATION ACTIONS ---
+async function handleGoogleSignIn() {
+    const provider = new GoogleAuthProvider();
+    try {
+        await signInWithPopup(auth, provider);
+        showNotification("Signed in successfully!");
+    } catch (error) {
+        console.error("Google sign in failed:", error);
+        showNotification("Failed to sign in with Google.");
+    }
+}
+
+async function handleSignOut() {
+    try {
+        if (appState.unsubscribeFromLogs) {
+            appState.unsubscribeFromLogs();
+        }
+        await signOut(auth);
+        showNotification("Signed out successfully.");
+        router(); // Re-route to trigger redirect if on edit/add page
+    } catch (error) {
+        console.error("Sign out failed:", error);
+        showNotification("Failed to sign out.");
+    }
+}
+
+// --- ONE-TIME AUTHOR MIGRATION ---
+async function migrateExistingRecipes() {
+    if (!appState.isGoogleUser) return;
+
+    // Check if already completed in LocalStorage to optimize clients
+    if (localStorage.getItem('cookbook_migrated_author_2026') === 'true') return;
+
+    const recipesToMigrate = appState.allRecipes.filter(r => !r.author || r.author === 'system');
+
+    if (recipesToMigrate.length === 0) {
+        localStorage.setItem('cookbook_migrated_author_2026', 'true');
+        return;
+    }
+
+    console.log(`Migrating ${recipesToMigrate.length} recipes to author uzeyirsalman@gmail.com...`);
+    const recipesCollection = getSharedRecipesCollection();
+    let migrateCount = 0;
+
+    for (const recipe of recipesToMigrate) {
+        try {
+            const recipeRef = doc(recipesCollection, recipe.id);
+            await updateDoc(recipeRef, {
+                author: "uzeyirsalman@gmail.com",
+                userId: appState.currentUserId
+            });
+            migrateCount++;
+        } catch (err) {
+            console.error(`Migration failed for: ${recipe.title}`, err);
+        }
+    }
+
+    if (migrateCount > 0) {
+        console.log(`Database migrated: ${migrateCount} recipes updated.`);
+        showNotification(`Database migrated: assigned ${migrateCount} recipes to you.`);
+        await logActivity("migrate", "multiple_recipes", `Migrated ${migrateCount} recipes' author to uzeyirsalman@gmail.com`);
+    }
+
+    localStorage.setItem('cookbook_migrated_author_2026', 'true');
+}
+
+// --- CHANGE LOGGING (CHANGELOG) ---
+async function logActivity(action, recipeId, recipeTitle) {
+    try {
+        const logsCol = collection(db, 'artifacts', firebaseConfig.projectId, 'activity-log');
+        await addDoc(logsCol, {
+            action: action, // "create", "update", "delete", "import", "migrate"
+            recipeId: recipeId,
+            recipeTitle: recipeTitle,
+            timestamp: serverTimestamp(),
+            byWho: appState.currentUserEmail || "Guest",
+            userId: appState.currentUserId || "anonymous"
+        });
+    } catch (err) {
+        console.error("Failed to write activity log:", err);
+    }
+}
+
+function listenForActivityLogs() {
+    if (appState.unsubscribeFromLogs) {
+        appState.unsubscribeFromLogs();
+    }
+
+    const logsCollection = collection(db, 'artifacts', firebaseConfig.projectId, 'activity-log');
+    const q = query(logsCollection, orderBy('timestamp', 'desc'), limit(25));
+    const listDiv = document.getElementById('activity-log-list');
+
+    if (!listDiv) return;
+
+    appState.unsubscribeFromLogs = onSnapshot(q, (snapshot) => {
+        listDiv.innerHTML = '';
+
+        if (snapshot.docs.length === 0) {
+            listDiv.innerHTML = `<div style="color: var(--secondary-text); text-align: center; padding: 0.5rem;">No activity logged yet.</div>`;
+            return;
+        }
+
+        snapshot.docs.forEach(doc => {
+            const log = doc.data();
+            const logItem = document.createElement('div');
+            logItem.className = 'activity-log-item';
+
+            let dateStr = 'Just now';
+            if (log.timestamp && typeof log.timestamp.toDate === 'function') {
+                const date = log.timestamp.toDate();
+                dateStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' ' + date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+            }
+
+            const action = log.action || 'update';
+            const actionUpper = action.toUpperCase();
+
+            logItem.innerHTML = `
+                <div class="activity-log-meta">
+                    <span class="activity-log-desc">
+                        <span class="activity-badge ${action}">${actionUpper}</span>
+                        <strong>${log.recipeTitle || 'Recipe'}</strong>
+                    </span>
+                    <span class="activity-log-by">by ${log.byWho || 'Guest'}</span>
+                </div>
+                <span class="activity-log-time">${dateStr}</span>
+            `;
+            listDiv.appendChild(logItem);
+        });
+    }, error => {
+        console.error("Error fetching activity logs:", error);
+        listDiv.innerHTML = `<div style="color: var(--danger); text-align: center; padding: 0.5rem;">Log permission denied.</div>`;
     });
 }
 
@@ -122,7 +331,6 @@ function handleExportBackup() {
         return;
     }
 
-    // Map only clean properties to match existing backup JSON format
     const exportData = appState.allRecipes.map(recipe => ({
         instructions: recipe.instructions || "",
         ingredients: recipe.ingredients || "",
@@ -153,6 +361,12 @@ async function handleImportBackup(event) {
     const file = event.target.files[0];
     if (!file) return;
 
+    // Only Google Auth users can write/import recipes
+    if (!appState.isGoogleUser) {
+        showNotification("Permission denied: Sign in with Google to import recipes.");
+        return;
+    }
+
     const statusDiv = document.getElementById('import-status');
     if (statusDiv) {
         statusDiv.className = 'import-status info';
@@ -165,7 +379,6 @@ async function handleImportBackup(event) {
         try {
             const parsedData = JSON.parse(e.target.result);
             
-            // Validate: must be an array
             if (!Array.isArray(parsedData)) {
                 throw new Error("Invalid format: Backup file must be a JSON array.");
             }
@@ -197,7 +410,6 @@ async function handleImportBackup(event) {
 
                 const formattedTitle = toTitleCase(recipe.title.trim());
                 
-                // Format tags properly
                 let cleanTags = [];
                 if (Array.isArray(recipe.tags)) {
                     cleanTags = recipe.tags.map(t => toTitleCase(t.trim())).filter(t => t);
@@ -210,21 +422,19 @@ async function handleImportBackup(event) {
                     tags: cleanTags,
                     ingredients: recipe.ingredients || "",
                     instructions: recipe.instructions || "",
-                    userId: appState.currentUserId || "system",
+                    userId: appState.currentUserId,
+                    author: appState.currentUserEmail,
                     createdAt: serverTimestamp()
                 };
 
-                // Check if already exists by title
                 const existingRecipe = appState.allRecipes.find(r => r.title.toLowerCase() === formattedTitle.toLowerCase());
 
                 try {
                     if (existingRecipe) {
-                        // Overwrite/update existing recipe in Firestore
                         const recipeRef = doc(recipesCollection, existingRecipe.id);
                         await updateDoc(recipeRef, recipeData);
                         duplicateCount++;
                     } else {
-                        // Add as new recipe
                         await addDoc(recipesCollection, recipeData);
                         successCount++;
                     }
@@ -239,6 +449,12 @@ async function handleImportBackup(event) {
                 statusDiv.textContent = `Import completed! Added: ${successCount}, Restored/Updated: ${duplicateCount}, Errors: ${errorCount}`;
             }
             showNotification("Recipes imported successfully!");
+
+            // Log this import action
+            if (successCount > 0 || duplicateCount > 0) {
+                await logActivity("import", "backup_file", `Imported ${successCount + duplicateCount} backup recipes`);
+            }
+
             event.target.value = ''; // Reset file input
         } catch (err) {
             console.error("Import failed:", err);
@@ -256,6 +472,15 @@ async function handleImportBackup(event) {
 function router() {
     const path = window.location.pathname;
     const pathParts = path.split('/').filter(p => p);
+
+    // Enforce Route Protection: guests cannot view add/edit forms
+    if (pathParts[0] === 'add' || pathParts[0] === 'edit') {
+        if (!appState.isGoogleUser) {
+            showNotification("Sign in with Google to create or edit recipes.");
+            displayTags(false);
+            return;
+        }
+    }
 
     if (pathParts[0] === 'tag' && pathParts[1]) {
         const tagName = decodeURIComponent(pathParts[1]);
@@ -312,11 +537,10 @@ function listenForRecipes(onCompleteCallback) {
 async function addDefaultRecipes() {
     const recipesCollection = getSharedRecipesCollection();
     const defaultRecipes = [
-        { title: 'Shared Tomato Soup', tags: ['Soup', 'Vegetarian', 'Classic'], ingredients: '1 kg ripe tomatoes\n2 tbsp olive oil\n1 onion, chopped', instructions: '1. Sauté onion.\n2. Add tomatoes and broth, simmer.\n3. Blend until smooth.', userId: 'system', createdAt: serverTimestamp() },
-        { title: 'Shared Garden Salad', tags: ['Salad', 'Quick', 'Healthy'], ingredients: '1 head of lettuce\n1 cucumber, sliced\n2 tomatoes, chopped', instructions: 'Combine all vegetables in a large bowl and toss with vinaigrette.', userId: 'system', createdAt: serverTimestamp() }
+        { title: 'Shared Tomato Soup', tags: ['Soup', 'Vegetarian', 'Classic'], ingredients: '1 kg ripe tomatoes\n2 tbsp olive oil\n1 onion, chopped', instructions: '1. Sauté onion.\n2. Add tomatoes and broth, simmer.\n3. Blend until smooth.', userId: 'system', author: 'system', createdAt: serverTimestamp() },
+        { title: 'Shared Garden Salad', tags: ['Salad', 'Quick', 'Healthy'], ingredients: '1 head of lettuce\n1 cucumber, sliced\n2 tomatoes, chopped', instructions: 'Combine all vegetables in a large bowl and toss with vinaigrette.', userId: 'system', author: 'system', createdAt: serverTimestamp() }
     ];
     for (const recipe of defaultRecipes) {
-        // Use title as document ID to prevent duplicates on reload
         const docRef = doc(recipesCollection, recipe.title.replace(/\s+/g, '-').toLowerCase());
         await setDoc(docRef, recipe);
     }
@@ -484,7 +708,8 @@ function displayRecipeDetails(recipeId, updateUrl = true) {
     detailContainer.appendChild(instructionsTitle);
     detailContainer.appendChild(instructions);
 
-    if (appState.currentUserId === recipe.userId || recipe.userId === 'system' || !recipe.userId) {
+    // Only Google Auth users can see Edit/Delete buttons
+    if (appState.isGoogleUser) {
         const actionsContainer = document.createElement('div');
         actionsContainer.id = 'recipe-actions';
         const editButton = document.createElement('button');
@@ -572,6 +797,10 @@ function displaySearchResults(recipes, searchTerm) {
 
 // --- FORM & DATA ACTIONS ---
 function showAddRecipeForm(updateUrl = true) {
+    if (!appState.isGoogleUser) {
+        showNotification("Permission denied: Google sign in required.");
+        return;
+    }
     if (updateUrl) {
         history.pushState({ view: 'addForm' }, '', '/add');
     }
@@ -587,6 +816,10 @@ function showAddRecipeForm(updateUrl = true) {
 }
 
 function showEditRecipeForm(recipeId, updateUrl = true) {
+    if (!appState.isGoogleUser) {
+        showNotification("Permission denied: Google sign in required.");
+        return;
+    }
     if (updateUrl) {
         history.pushState({ view: 'editForm', recipeId }, '', `/edit/${recipeId}`);
     }
@@ -614,8 +847,8 @@ function showEditRecipeForm(recipeId, updateUrl = true) {
 
 async function handleFormSubmit(event) {
     event.preventDefault();
-    if (!appState.currentUserId) {
-        showNotification("You must be signed in to save recipes.");
+    if (!appState.isGoogleUser) {
+        showNotification("You must be signed in with a Google account to save recipes.");
         return;
     }
     
@@ -644,6 +877,7 @@ async function handleFormSubmit(event) {
         ingredients: document.getElementById('recipe-ingredients').value,
         instructions: document.getElementById('recipe-instructions').value,
         userId: appState.currentUserId,
+        author: appState.currentUserEmail, // Save author email
         createdAt: serverTimestamp()
     };
 
@@ -653,9 +887,11 @@ async function handleFormSubmit(event) {
         if (recipeId) {
             const recipeRef = doc(recipesCollection, recipeId);
             await updateDoc(recipeRef, recipeData);
+            await logActivity("update", recipeId, formattedTitle); // Log update
         } else {
             const docRef = await addDoc(recipesCollection, recipeData);
             savedRecipeId = docRef.id;
+            await logActivity("create", savedRecipeId, formattedTitle); // Log creation
         }
         showNotification('Recipe saved successfully!');
         
@@ -696,8 +932,18 @@ function confirmDelete(recipeId, recipeTitle) {
 }
 
 async function deleteRecipe(id) {
+    // Check role first
+    if (!appState.isGoogleUser) {
+        showNotification("Permission denied: Google sign in required.");
+        return;
+    }
+
+    const recipe = appState.allRecipes.find(r => r.id === id);
+    const title = recipe ? recipe.title : "Recipe";
+
     try {
         await deleteDoc(doc(getSharedRecipesCollection(), id));
+        await logActivity("delete", id, title); // Log delete
         showNotification('Recipe deleted.');
         displayTags(true); 
     } catch (error) {

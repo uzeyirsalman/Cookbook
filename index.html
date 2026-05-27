@@ -48,7 +48,19 @@
                 <button id="settings-btn" class="header-btn settings-btn" aria-label="Settings and Backup">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                 </button>
-                <button id="add-recipe-btn" class="header-btn add-recipe-btn" aria-label="Add Recipe">
+                
+                <!-- Google Authentication Panel -->
+                <div id="auth-container" class="auth-container">
+                    <button id="login-btn" class="header-btn login-btn" aria-label="Sign In with Google">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </button>
+                    <div id="user-profile" class="user-profile hidden">
+                        <img id="user-avatar" class="user-avatar" src="" alt="User Avatar" referrerpolicy="no-referrer">
+                        <button id="logout-btn" class="logout-btn" aria-label="Sign Out">Sign Out</button>
+                    </div>
+                </div>
+
+                <button id="add-recipe-btn" class="header-btn add-recipe-btn hidden" aria-label="Add Recipe">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </button>
             </div>
@@ -130,6 +142,15 @@
                 </div>
             </div>
             <div id="import-status" class="import-status"></div>
+            
+            <!-- In-app Activity Log timeline -->
+            <div style="border-top: 1px solid var(--border); margin: 1.25rem 0 0 0; padding-top: 1rem; text-align: left;">
+                <h4 style="margin: 0 0 0.5rem 0; font-weight: 700; font-size: 0.95rem; color: var(--primary-text);">Recent Activity Log</h4>
+                <div id="activity-log-list" style="max-height: 140px; overflow-y: auto; font-size: 0.8rem; background: var(--background); border: 1px solid var(--border); padding: 0.5rem; border-radius: 8px; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <div style="color: var(--secondary-text);">Loading activity logs...</div>
+                </div>
+            </div>
+
             <div class="modal-actions" style="margin-top: 1.5rem; display: flex; justify-content: center;">
                 <button id="settings-close-btn" class="action-button">Close</button>
             </div>

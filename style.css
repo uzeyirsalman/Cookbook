@@ -675,3 +675,117 @@ header.search-active .header-left {
 .hidden {
     display: none !important;
 }
+
+/* --- Google Authentication Styling --- */
+.auth-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.login-btn {
+    background-color: var(--accent);
+    color: white;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.85rem;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.login-btn:hover {
+    background-color: var(--accent-hover);
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    cursor: pointer;
+    transition: transform var(--transition-speed) ease, border-color var(--transition-speed) ease;
+}
+
+.user-avatar:hover {
+    transform: scale(1.08);
+    border-color: var(--accent);
+}
+
+.logout-btn {
+    background: #f1f3f5;
+    border: 1px solid var(--border);
+    color: var(--secondary-text);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+}
+
+.logout-btn:hover {
+    background: var(--danger);
+    color: white;
+    border-color: var(--danger);
+}
+
+/* --- Activity Log Timeline Styles --- */
+#activity-log-list {
+    scrollbar-width: thin;
+}
+
+.activity-log-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    background: white;
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    animation: fadeIn var(--transition-speed) ease-out;
+}
+
+.activity-log-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.activity-log-desc {
+    color: var(--primary-text);
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.activity-log-by {
+    color: var(--secondary-text);
+    font-size: 0.7rem;
+}
+
+.activity-log-time {
+    color: var(--light-gray);
+    font-size: 0.7rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Color tags based on actions */
+.activity-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+    margin-right: 0.4rem;
+}
+
+.activity-badge.create { background-color: #eafaf1; color: var(--success); }
+.activity-badge.update { background-color: #ebf5ff; color: var(--accent); }
+.activity-badge.delete { background-color: #fdf2f2; color: var(--danger); }
+
