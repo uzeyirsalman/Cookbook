@@ -937,28 +937,37 @@ async function handleFormSubmit(event) {
         showNotification('A recipe with this title already exists. Please choose a unique title.');
         return; 
     }
-
-    const recipeData = {
-        title: formattedTitle,
-        tags: document.getElementById('recipe-tags').value
-            .split(',')
-            .map(tag => toTitleCase(tag.trim()))
-            .filter(tag => tag),
-        ingredients: document.getElementById('recipe-ingredients').value,
-        instructions: document.getElementById('recipe-instructions').value,
-        userId: appState.currentUserId,
-        author: appState.currentUserEmail, // Save author email
-        createdAt: serverTimestamp()
-    };
-
     try {
         const recipesCollection = getSharedRecipesCollection();
         let savedRecipeId = recipeId;
         if (recipeId) {
+            // Update: only update content fields; preserve original userId, author, and createdAt
+            const updateData = {
+                title: formattedTitle,
+                tags: document.getElementById('recipe-tags').value
+                    .split(',')
+                    .map(tag => toTitleCase(tag.trim()))
+                    .filter(tag => tag),
+                ingredients: document.getElementById('recipe-ingredients').value,
+                instructions: document.getElementById('recipe-instructions').value
+            };
             const recipeRef = doc(recipesCollection, recipeId);
-            await updateDoc(recipeRef, recipeData);
+            await updateDoc(recipeRef, updateData);
             await logActivity("update", recipeId, formattedTitle); // Log update
         } else {
+            // Create: include all ownership and timestamp metadata
+            const recipeData = {
+                title: formattedTitle,
+                tags: document.getElementById('recipe-tags').value
+                    .split(',')
+                    .map(tag => toTitleCase(tag.trim()))
+                    .filter(tag => tag),
+                ingredients: document.getElementById('recipe-ingredients').value,
+                instructions: document.getElementById('recipe-instructions').value,
+                userId: appState.currentUserId,
+                author: appState.currentUserEmail, // Save author email
+                createdAt: serverTimestamp()
+            };
             const docRef = await addDoc(recipesCollection, recipeData);
             savedRecipeId = docRef.id;
             await logActivity("create", savedRecipeId, formattedTitle); // Log creation
