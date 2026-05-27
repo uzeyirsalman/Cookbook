@@ -479,9 +479,9 @@ function router() {
     const pathParts = path.split('/').filter(p => p);
 
     // Enforce Route Protection: guests cannot view add/edit forms
-    if (pathParts[0] === 'add' || pathParts[0] === 'edit') {
+    if (pathParts[0] === 'add') {
         if (!appState.isGoogleUser) {
-            showNotification("Sign in with Google to create or edit recipes.");
+            showNotification("Sign in with Google to create recipes.");
             displayTags(false);
             return;
         }
@@ -500,6 +500,15 @@ function router() {
     } else if (pathParts[0] === 'edit' && pathParts[1]) {
         const recipeId = pathParts[1];
         if (appState.allRecipes.length > 0) {
+            const recipe = appState.allRecipes.find(r => r.id === recipeId);
+            const isOwner = recipe && recipe.userId === appState.currentUserId;
+            const isAdmin = appState.currentUserEmail === 'uzeyirsalman@gmail.com';
+            
+            if (!appState.isGoogleUser || (!isOwner && !isAdmin)) {
+                showNotification("Unauthorized: You do not have permission to edit this recipe.");
+                displayTags(false);
+                return;
+            }
             showEditRecipeForm(recipeId, false);
         }
     } else {
@@ -713,8 +722,11 @@ function displayRecipeDetails(recipeId, updateUrl = true) {
     detailContainer.appendChild(instructionsTitle);
     detailContainer.appendChild(instructions);
 
-    // Only Google Auth users can see Edit/Delete buttons
-    if (appState.isGoogleUser) {
+    // Only Google Auth users who are the creator OR admin can see Edit/Delete buttons
+    const isOwner = recipe.userId === appState.currentUserId;
+    const isAdmin = appState.currentUserEmail === 'uzeyirsalman@gmail.com';
+
+    if (appState.isGoogleUser && (isOwner || isAdmin)) {
         const actionsContainer = document.createElement('div');
         actionsContainer.id = 'recipe-actions';
         const editButton = document.createElement('button');
