@@ -96,34 +96,38 @@ function handleAuthentication() {
             appState.currentUserEmail = user.email || "Google User";
             appState.isGoogleUser = true;
 
-            // UI updates
-            document.getElementById('login-btn').classList.add('hidden');
-            document.getElementById('user-profile').classList.remove('hidden');
-            
-            const avatar = document.getElementById('user-avatar');
-            if (avatar) {
-                avatar.src = user.photoURL || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z' fill='%236c757d'/%3E%3C/svg%3E";
+            // UI updates: Dynamic user header section inside drawer
+            const userSection = document.getElementById('drawer-user-section');
+            if (userSection) {
+                userSection.classList.remove('hidden');
+                const userPhoto = user.photoURL || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z' fill='%236c757d'/%3E%3C/svg%3E";
+                userSection.innerHTML = `
+                    <img class="user-avatar" src="${userPhoto}" alt="User Avatar" referrerpolicy="no-referrer">
+                    <div class="drawer-user-info">
+                        <span class="drawer-user-name">${user.displayName || "Google User"}</span>
+                        <span class="drawer-user-email">${user.email}</span>
+                    </div>
+                `;
             }
-            
-            // Show author features
-            document.getElementById('add-recipe-btn').classList.remove('hidden');
 
-            // Show global filter bar for logged-in users
-            const filterBar = document.getElementById('filter-bar');
-            if (filterBar) {
-                filterBar.classList.remove('hidden');
-                const filterCheckbox = document.getElementById('own-recipes-filter');
-                if (filterCheckbox) {
-                    filterCheckbox.checked = appState.showOnlyOwnRecipes;
-                }
+            // Auth UI: Toggle drawer buttons
+            document.getElementById('drawer-login-btn').classList.add('hidden');
+            document.getElementById('drawer-logout-btn').classList.remove('hidden');
+            
+            // Show author-specific drawer menu actions
+            document.getElementById('menu-add-recipe-row').classList.remove('hidden');
+            document.getElementById('drawer-filter-section').classList.remove('hidden');
+            const filterCheckbox = document.getElementById('own-recipes-filter');
+            if (filterCheckbox) {
+                filterCheckbox.checked = appState.showOnlyOwnRecipes;
             }
 
             // Settings gear & Log Listener EXCLUSIVE to Admin
             if (appState.currentUserEmail === 'uzeyirsalman@gmail.com') {
-                document.getElementById('settings-btn').classList.remove('hidden');
+                document.getElementById('menu-settings-row').classList.remove('hidden');
                 listenForActivityLogs();
             } else {
-                document.getElementById('settings-btn').classList.add('hidden');
+                document.getElementById('menu-settings-row').classList.add('hidden');
                 if (appState.unsubscribeFromLogs) {
                     appState.unsubscribeFromLogs();
                 }
@@ -142,19 +146,21 @@ function handleAuthentication() {
             appState.isGoogleUser = false;
             appState.showOnlyOwnRecipes = false; // Reset filter
 
-            // UI updates
-            document.getElementById('login-btn').classList.remove('hidden');
-            document.getElementById('user-profile').classList.add('hidden');
-            
-            // Hide global filter bar
-            const filterBar = document.getElementById('filter-bar');
-            if (filterBar) {
-                filterBar.classList.add('hidden');
+            // UI updates: Dynamic user section (clear & hide)
+            const userSection = document.getElementById('drawer-user-section');
+            if (userSection) {
+                userSection.innerHTML = '';
+                userSection.classList.add('hidden');
             }
 
-            // Hide author features & settings gear
-            document.getElementById('add-recipe-btn').classList.add('hidden');
-            document.getElementById('settings-btn').classList.add('hidden');
+            // Auth UI: Toggle drawer buttons
+            document.getElementById('drawer-login-btn').classList.remove('hidden');
+            document.getElementById('drawer-logout-btn').classList.add('hidden');
+            
+            // Hide author-specific drawer menu actions
+            document.getElementById('menu-add-recipe-row').classList.add('hidden');
+            document.getElementById('menu-settings-row').classList.add('hidden');
+            document.getElementById('drawer-filter-section').classList.add('hidden');
 
             if (appState.unsubscribeFromLogs) {
                 appState.unsubscribeFromLogs();
@@ -184,30 +190,67 @@ function setupRegisteredButtons() {
     console.log("Binding click listeners to DOM elements...");
 
     document.getElementById('home-btn').addEventListener('click', () => displayTags());
-    document.getElementById('random-recipe-btn').addEventListener('click', handleRandomClick);
-    document.getElementById('add-recipe-btn').addEventListener('click', () => {
+    document.getElementById('recipe-form').addEventListener('submit', handleFormSubmit);
+    document.getElementById('search-btn').addEventListener('click', toggleSearchInput);
+    document.getElementById('search-input').addEventListener('keydown', handleSearch);
+
+    // Settings/Backup modal close and action listeners
+    document.getElementById('settings-close-btn').addEventListener('click', closeSettingsModal);
+    document.getElementById('export-backup-btn').addEventListener('click', handleExportBackup);
+    document.getElementById('import-file-input').addEventListener('change', handleImportBackup);
+
+    // Slide-out Drawer Open/Close Toggle listeners
+    const menuToggle = document.getElementById('menu-toggle-btn');
+    const menuClose = document.getElementById('menu-close-btn');
+    const menuBackdrop = document.getElementById('menu-backdrop');
+    const navDrawer = document.getElementById('nav-drawer');
+
+    const toggleDrawer = (open) => {
+        if (open) {
+            navDrawer.classList.remove('hidden');
+            menuBackdrop.classList.remove('hidden');
+        } else {
+            navDrawer.classList.add('hidden');
+            menuBackdrop.classList.add('hidden');
+        }
+    };
+
+    if (menuToggle) menuToggle.addEventListener('click', () => toggleDrawer(true));
+    if (menuClose) menuClose.addEventListener('click', () => toggleDrawer(false));
+    if (menuBackdrop) menuBackdrop.addEventListener('click', () => toggleDrawer(false));
+
+    // Drawer Menu Actions (Dismisses drawer after click)
+    document.getElementById('menu-add-recipe-btn').addEventListener('click', () => {
+        toggleDrawer(false);
         if (appState.isGoogleUser) {
             showAddRecipeForm();
         } else {
             showNotification("Please sign in with Google to add recipes.");
         }
     });
-    document.getElementById('recipe-form').addEventListener('submit', handleFormSubmit);
-    document.getElementById('search-btn').addEventListener('click', toggleSearchInput);
-    document.getElementById('search-input').addEventListener('keydown', handleSearch);
 
-    // Settings/Backup listeners
-    document.getElementById('settings-btn').addEventListener('click', openSettingsModal);
-    document.getElementById('settings-close-btn').addEventListener('click', closeSettingsModal);
-    document.getElementById('export-backup-btn').addEventListener('click', handleExportBackup);
-    document.getElementById('import-file-input').addEventListener('change', handleImportBackup);
+    document.getElementById('menu-random-recipe-btn').addEventListener('click', (e) => {
+        toggleDrawer(false);
+        handleRandomClick(e);
+    });
 
-    // Google Auth actions
-    console.log("Registering Google login-btn click listener...");
-    document.getElementById('login-btn').addEventListener('click', handleGoogleSignIn);
-    document.getElementById('logout-btn').addEventListener('click', handleSignOut);
+    document.getElementById('menu-settings-btn').addEventListener('click', () => {
+        toggleDrawer(false);
+        openSettingsModal();
+    });
 
-    // "My Recipes Only" filter checkbox listener
+    // Google Auth actions in Drawer
+    document.getElementById('drawer-login-btn').addEventListener('click', () => {
+        toggleDrawer(false);
+        handleGoogleSignIn();
+    });
+
+    document.getElementById('drawer-logout-btn').addEventListener('click', () => {
+        toggleDrawer(false);
+        handleSignOut();
+    });
+
+    // "My Recipes Only" filter checkbox listener (inside drawer)
     const filterCheckbox = document.getElementById('own-recipes-filter');
     if (filterCheckbox) {
         filterCheckbox.addEventListener('change', (e) => {
