@@ -682,6 +682,45 @@ function toTitleCase(str) {
         .join(' ');
 }
 
+function getCategoryIcon(tag) {
+    const clean = tag.toLowerCase().trim();
+    if (clean.includes('pasta') || clean.includes('italian') || clean.includes('noodle')) return '🍝';
+    if (clean.includes('soup') || clean.includes('stew') || clean.includes('ramen')) return '🥣';
+    if (clean.includes('salad') || clean.includes('green')) return '🥗';
+    if (clean.includes('healthy') || clean.includes('veg') || clean.includes('vegan') || clean.includes('diet')) return '🥦';
+    if (clean.includes('dessert') || clean.includes('sweet') || clean.includes('cake') || clean.includes('cookie') || clean.includes('bake')) return '🍰';
+    if (clean.includes('breakfast') || clean.includes('egg') || clean.includes('morning')) return '🍳';
+    if (clean.includes('quick') || clean.includes('fast') || clean.includes('minute') || clean.includes('easy')) return '⏱️';
+    if (clean.includes('dinner') || clean.includes('classic') || clean.includes('main')) return '🍽️';
+    return '🍳'; // Elegant default pan emoji
+}
+
+function getCategoryThemeColors(tag) {
+    const clean = tag.toLowerCase().trim();
+    if (clean.includes('pasta') || clean.includes('italian') || clean.includes('noodle')) {
+        return { bg: '#fffaf2', hover: '#ffe8cc', text: '#e67e22', border: 'rgba(230, 126, 34, 0.15)' }; // Warm Orange
+    }
+    if (clean.includes('soup') || clean.includes('stew') || clean.includes('ramen')) {
+        return { bg: '#f4faff', hover: '#d0e8ff', text: '#1976d2', border: 'rgba(25, 118, 210, 0.15)' }; // Ice Blue
+    }
+    if (clean.includes('salad') || clean.includes('green') || clean.includes('healthy') || clean.includes('veg')) {
+        return { bg: '#f5faf6', hover: '#d1edd8', text: '#2e7d32', border: 'rgba(46, 125, 50, 0.15)' }; // Mint Green
+    }
+    if (clean.includes('dessert') || clean.includes('sweet') || clean.includes('cake')) {
+        return { bg: '#fff5f7', hover: '#ffd0db', text: '#c2185b', border: 'rgba(194, 24, 91, 0.15)' }; // Soft Rose Pink
+    }
+    if (clean.includes('breakfast') || clean.includes('egg') || clean.includes('morning')) {
+        return { bg: '#fffef0', hover: '#fff9c4', text: '#f5b041', border: 'rgba(241, 196, 15, 0.2)' }; // Honey Gold
+    }
+    if (clean.includes('quick') || clean.includes('fast') || clean.includes('minute') || clean.includes('easy')) {
+        return { bg: '#faf5ff', hover: '#edd4ff', text: '#7b1fa2', border: 'rgba(123, 31, 162, 0.15)' }; // Soft Purple
+    }
+    if (clean.includes('dinner') || clean.includes('classic') || clean.includes('main')) {
+        return { bg: '#faf9f6', hover: '#eee4d8', text: '#5d4037', border: 'rgba(93, 64, 55, 0.15)' }; // Earthy Brown
+    }
+    return { bg: '#fafafa', hover: '#eaeaea', text: '#555555', border: 'rgba(0, 0, 0, 0.06)' }; // Neutral Grey
+}
+
 // --- DISPLAY FUNCTIONS ---
 function displayTags(updateUrl = true) {
     if (updateUrl) {
@@ -703,7 +742,12 @@ function displayTags(updateUrl = true) {
         });
     });
 
-    const sortedTags = Object.keys(tagCounts).sort((a, b) => a.localeCompare(b));
+    const sortedTags = Object.keys(tagCounts).sort((a, b) => {
+        const countDiff = tagCounts[b] - tagCounts[a];
+        if (countDiff !== 0) return countDiff;
+        return a.localeCompare(b); // Alphabetical fallback if counts are equal
+    });
+
     const container = document.getElementById('tag-list-container');
     container.innerHTML = '';
 
@@ -712,10 +756,19 @@ function displayTags(updateUrl = true) {
     } else {
         sortedTags.forEach(tag => {
             const card = document.createElement('div');
-            card.className = 'tag-card';
+            card.className = 'tag-card theme-card';
+            
+            const icon = getCategoryIcon(tag);
+            const theme = getCategoryThemeColors(tag);
+            
+            card.style.setProperty('--theme-bg', theme.bg);
+            card.style.setProperty('--theme-hover', theme.hover);
+            card.style.setProperty('--theme-text', theme.text);
+            card.style.setProperty('--theme-border', theme.border);
+            
             card.innerHTML = `
-                <span>${tag}</span>
-                <span class="recipe-count">${tagCounts[tag]}</span>
+                <span class="theme-icon">${icon}</span>
+                <span class="theme-title">${tag}</span>
             `;
             card.addEventListener('click', () => displayRecipesByTag(tag));
             container.appendChild(card);
