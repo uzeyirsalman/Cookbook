@@ -10,6 +10,7 @@
     --accent: #4f46e5; /* Indigo 600 */
     --accent-hover: #4338ca; /* Indigo 700 */
     --accent-glow: rgba(79, 70, 229, 0.08);
+    --accent-gradient: linear-gradient(135deg, #4f46e5 0%, #ec4899 100%);
     --brand-color: #e7d083; /* Used for Logo */
     --danger: #ef4444; /* Modern Red 500 */
     --danger-hover: #dc2626;
@@ -103,16 +104,13 @@ header:not(.header-hidden) {
 }
 
 .app-logo {
-    width: 36px;
-    height: 36px;
-    fill: var(--brand-color);
-    stroke: var(--primary-text);
-    stroke-width: 2.2;
+    width: 40px;
+    height: 40px;
     transition: transform var(--transition-speed) cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .header-left:hover .app-logo {
-    transform: rotate(-10deg) scale(1.08);
+    transform: rotate(-10deg) scale(1.1);
 }
 
 .header-right {
@@ -121,20 +119,34 @@ header:not(.header-hidden) {
     gap: 0.75rem;
 }
 
-header h1 {
-    font-size: 1.45rem;
-    font-weight: 800;
+.app-title {
+    font-size: 1.55rem;
     margin: 0;
     line-height: 1;
-    letter-spacing: -0.03em;
-    background: linear-gradient(135deg, #1e293b 30%, #4f46e5 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.04em;
+    display: flex;
+    align-items: center;
+    gap: 0px;
     transition: max-width 0.3s ease, opacity 0.2s ease;
     max-width: 200px;
     opacity: 1;
     white-space: nowrap;
     overflow: hidden;
+}
+
+.app-title .title-light {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 400;
+    color: var(--primary-text);
+}
+
+.app-title .title-bold {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 900;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 15px rgba(79, 70, 229, 0.15);
 }
 
 /* Glass-style Buttons */
@@ -227,7 +239,7 @@ header.search-active .search-input:focus {
 }
 
 /* Hide elements in active search on mobile */
-header.search-active .header-left h1,
+header.search-active .header-left .app-title,
 header.search-active .app-logo,
 header.search-active #random-recipe-btn,
 header.search-active #settings-btn,

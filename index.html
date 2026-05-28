@@ -19,18 +19,35 @@
         <header id="main-header">
             <!-- Merged Logo and Home Button -->
             <div class="header-left" id="home-btn" role="button" aria-label="Home">
-                <!-- SVG Logo: Cooking Pot -->
+                <!-- Modern Premium SVG Logo: Culinary Magic Cloche -->
                 <svg class="app-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-                    <!-- Pot Body -->
-                    <path d="M15 45 Q50 95 85 45 L85 35 L15 35 Z" fill="#e7d083" stroke="currentColor" stroke-width="4"/>
-                    <!-- Pot Rim/Detail -->
-                    <line x1="15" y1="35" x2="85" y2="35" stroke="currentColor" stroke-width="4"/>
-                    <!-- Steam 1 -->
-                    <path d="M30 25 Q30 5 40 15 T50 15" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-                    <!-- Steam 2 -->
-                    <path d="M55 25 Q55 5 65 15 T75 15" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+                    <defs>
+                        <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#4f46e5" />
+                            <stop offset="100%" stop-color="#ec4899" />
+                        </linearGradient>
+                        <linearGradient id="sparkle-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#f59e0b" />
+                            <stop offset="100%" stop-color="#f43f5e" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Background Soft Glow Circle -->
+                    <circle cx="50" cy="50" r="46" fill="rgba(79, 70, 229, 0.05)" stroke="rgba(79, 70, 229, 0.12)" stroke-width="1.5" />
+                    <!-- Sparkles/Magic (Culinary Excellence) -->
+                    <path d="M 26 28 Q 30 28 30 24 Q 30 28 34 28 Q 30 28 30 32 Q 30 28 26 28 Z" fill="url(#sparkle-grad)" />
+                    <path d="M 70 24 Q 73 24 73 21 Q 73 24 76 24 Q 73 24 73 27 Q 73 24 70 24 Z" fill="url(#sparkle-grad)" />
+                    <path d="M 76 38 Q 78 38 78 36 Q 78 38 80 38 Q 78 38 78 40 Q 78 38 76 38 Z" fill="url(#sparkle-grad)" />
+                    <!-- Chef's Cloche / Food Cover -->
+                    <!-- Tray/Plate base -->
+                    <path d="M 20 70 Q 50 73 80 70 A 2 2 0 0 0 80 66 Q 50 69 20 66 A 2 2 0 0 0 20 70 Z" fill="url(#logo-grad)" />
+                    <!-- Dome Cover -->
+                    <path d="M 26 62 Q 26 35 50 35 Q 74 35 74 62 Z" fill="url(#logo-grad)" opacity="0.9" />
+                    <!-- Handle -->
+                    <circle cx="50" cy="30" r="4.5" fill="url(#logo-grad)" />
+                    <!-- Shine Highlight -->
+                    <path d="M 34 58 A 20 20 0 0 1 50 41" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.45" />
                 </svg>
-                <h1>Cookbook</h1>
+                <h1 class="app-title"><span class="title-light">Cook</span><span class="title-bold">Book</span></h1>
             </div>
 
             <div class="header-right">
