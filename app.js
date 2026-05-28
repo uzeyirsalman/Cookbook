@@ -848,10 +848,27 @@ function displayRecipeDetails(recipeId, updateUrl = true) {
     ingredientsTitle.textContent = 'Ingredients';
     const ingredientsList = document.createElement('ul');
     ingredientsList.id = 'recipe-ingredients-detail';
-    (recipe.ingredients || '').split('\n').forEach(ing => {
+    (recipe.ingredients || '').split('\n').forEach((ing, idx) => {
         if (ing.trim()) {
             const li = document.createElement('li');
-            li.textContent = ing;
+            const label = document.createElement('label');
+            label.className = 'ingredient-checkbox-wrapper';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `ing-${idx}`;
+            
+            const customSpan = document.createElement('span');
+            customSpan.className = 'ingredient-checkbox-custom';
+            
+            const textSpan = document.createElement('span');
+            textSpan.className = 'ingredient-text';
+            textSpan.textContent = ing.trim();
+            
+            label.appendChild(checkbox);
+            label.appendChild(customSpan);
+            label.appendChild(textSpan);
+            li.appendChild(label);
             ingredientsList.appendChild(li);
         }
     });
