@@ -234,6 +234,14 @@ function setupRegisteredButtons() {
         handleRandomClick(e);
     });
 
+    const menuFmdBtn = document.getElementById('menu-fmd-btn');
+    if (menuFmdBtn) {
+        menuFmdBtn.addEventListener('click', () => {
+            toggleDrawer(false);
+            displayRecipesByTag('Fmd');
+        });
+    }
+
     document.getElementById('menu-settings-btn').addEventListener('click', () => {
         toggleDrawer(false);
         openSettingsModal();
@@ -665,6 +673,14 @@ function showView(viewId) {
         if (el) el.classList.add('hidden');
     });
     
+    // Cleanup FMD info card if we are not in the recipe-list-container
+    if (viewId !== 'recipe-list-container') {
+        const existingFmdCard = document.querySelector('.fmd-info-card');
+        if (existingFmdCard) {
+            existingFmdCard.remove();
+        }
+    }
+
     const viewToShow = document.getElementById(viewId);
     if(viewToShow) {
         viewToShow.classList.remove('hidden');
@@ -1347,6 +1363,26 @@ function getCategoryIcon(tag) {
             </g>
         </svg>`;
     }
+    if (clean === 'fmd') {
+        return `<svg viewBox="0 0 100 100" class="shadow-filter">
+            <defs>
+                <linearGradient id="fmd-grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#b45309" />
+                    <stop offset="100%" stop-color="#78350f" />
+                </linearGradient>
+            </defs>
+            <circle cx="50" cy="53" r="30" fill="none" stroke="url(#fmd-grad)" stroke-width="4.5" />
+            <line x1="50" y1="28" x2="50" y2="33" stroke="url(#fmd-grad)" stroke-width="3" stroke-linecap="round" />
+            <line x1="50" y1="73" x2="50" y2="78" stroke="url(#fmd-grad)" stroke-width="3" stroke-linecap="round" />
+            <line x1="25" y1="53" x2="30" y2="53" stroke="url(#fmd-grad)" stroke-width="3" stroke-linecap="round" />
+            <line x1="70" y1="53" x2="75" y2="53" stroke="url(#fmd-grad)" stroke-width="3" stroke-linecap="round" />
+            <rect x="46" y="16" width="8" height="7" rx="1.5" fill="url(#fmd-grad)" />
+            <rect x="70" y="24" width="6" height="5" rx="1" fill="url(#fmd-grad)" transform="rotate(35, 73, 26)" />
+            <line x1="50" y1="53" x2="50" y2="40" stroke="url(#fmd-grad)" stroke-width="3.5" stroke-linecap="round" />
+            <line x1="50" y1="53" x2="62" y2="53" stroke="url(#fmd-grad)" stroke-width="2.5" stroke-linecap="round" />
+            <path d="M 37 45 A 18 18 0 0 1 63 45" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 3" />
+        </svg>`;
+    }
     if (clean.includes('healthy') || clean.includes('veg') || clean.includes('vegan') || clean.includes('diet')) return '🥦';
     if (clean.includes('breakfast') || clean.includes('egg') || clean.includes('morning')) return '🍳';
     if (clean.includes('quick') || clean.includes('fast') || clean.includes('minute') || clean.includes('easy')) return '⏱️';
@@ -1487,6 +1523,12 @@ function displayRecipesByTag(tag, updateUrl = true) {
     const listDiv = document.getElementById('recipe-list');
     listDiv.innerHTML = '';
 
+    // Remove existing FMD card first to avoid duplication
+    const existingFmdCard = document.querySelector('.fmd-info-card');
+    if (existingFmdCard) {
+        existingFmdCard.remove();
+    }
+
     if (recipes.length === 0) {
         listDiv.innerHTML = `<p class="empty-state">No recipes found.</p>`;
     } else {
@@ -1497,6 +1539,29 @@ function displayRecipesByTag(tag, updateUrl = true) {
             item.addEventListener('click', () => displayRecipeDetails(recipe.id));
             listDiv.appendChild(item);
         });
+    }
+
+    if (tag.toLowerCase() === 'fmd') {
+        const fmdInfoCard = document.createElement('div');
+        fmdInfoCard.className = 'fmd-info-card';
+        fmdInfoCard.innerHTML = `
+            <h3>Fasting Mimicking Diet (FMD) Protocol</h3>
+            <p>The Fasting Mimicking Diet is designed to trigger the physiological benefits of water fasting (such as cellular clean-up/autophagy) while providing essential macronutrients from clean, plant-based fats and complex carbohydrates.</p>
+            
+            <h4>🔑 Core Rules:</h4>
+            <ol>
+                <li><strong>No Additions:</strong> Do not add animal protein, dairy, sugar, or extra cooking oil.</li>
+                <li><strong>Preserve Fats:</strong> Boil soup vegetables in salted water. Remove from heat before blending and stirring in olive oil. Heating high-quality extra virgin olive oil aggressively damages healthy fats.</li>
+                <li><strong>Dry Weight:</strong> Always weigh quinoa dry before cooking it.</li>
+            </ol>
+
+            <h4>🔄 Autophagy & Alternate-Day Fasting (ADF/ATF)</h4>
+            <p>FMD macros restrict protein to strictly below 10%, turning off the mTOR pathway. To maximize autophagy, integrate these days into an Alternate-Day Fasting rotation. Fast from your last feast meal (feast day dinner) through the entire FMD day, until breakfast of the next feast day, maximizing consecutive hours of autophagic flux.</p>
+        `;
+        const container = document.getElementById('recipe-list-container');
+        if (container) {
+            container.appendChild(fmdInfoCard);
+        }
     }
 
     showView('recipe-list-container');
