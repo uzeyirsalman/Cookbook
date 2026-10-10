@@ -26,9 +26,14 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- CONFIG & INITIALIZATION ---
+const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
+const dynamicAuthDomain = (currentHost && (currentHost.endsWith('.web.app') || currentHost.endsWith('.firebaseapp.com')))
+    ? currentHost
+    : "cookbook-usle.firebaseapp.com";
+
 const firebaseConfig = {
     apiKey: "AIzaSyCaR1QOk6_EOtPeDwqS4NAKc3pRHWlaTAM",
-    authDomain: "cookbook-usle.firebaseapp.com",
+    authDomain: dynamicAuthDomain,
     projectId: "cookbook-usle",
     storageBucket: "cookbook-usle.firebasestorage.app",
     messagingSenderId: "817755572002",
@@ -110,99 +115,120 @@ function handleAuthentication() {
 
     onAuthStateChanged(auth, async (user) => {
         if (user && !user.isAnonymous) {
-            // Google Authenticated User (Author)
-            appState.currentUserId = user.uid;
-            appState.currentUserEmail = user.email || "Google User";
-            appState.isGoogleUser = true;
-
-            // UI updates: Dynamic user header section inside drawer
-            const userSection = document.getElementById('drawer-user-section');
-            if (userSection) {
-                userSection.classList.remove('hidden');
-                const userPhoto = user.photoURL || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z' fill='%236c757d'/%3E%3C/svg%3E";
-                userSection.innerHTML = `
-                    <img class="user-avatar" src="${userPhoto}" alt="User Avatar" referrerpolicy="no-referrer">
-                    <div class="drawer-user-info">
-                        <span class="drawer-user-name">${user.displayName || "Google User"}</span>
-                        <span class="drawer-user-email">${user.email}</span>
-                    </div>
-                `;
-            }
-
-            // Auth UI: Toggle drawer buttons
-            document.getElementById('drawer-login-btn').classList.add('hidden');
-            document.getElementById('drawer-logout-btn').classList.remove('hidden');
-            
-            // Show author-specific drawer menu actions
-            document.getElementById('menu-add-recipe-row').classList.remove('hidden');
-            document.getElementById('drawer-filter-section').classList.remove('hidden');
-            const filterCheckbox = document.getElementById('own-recipes-filter');
-            if (filterCheckbox) {
-                filterCheckbox.checked = appState.showOnlyOwnRecipes;
-            }
-
-            // Settings gear & Log Listener EXCLUSIVE to Admin
-            if (appState.currentUserEmail === 'uzeyirsalman@gmail.com') {
-                document.getElementById('menu-settings-row').classList.remove('hidden');
-                listenForActivityLogs();
-            } else {
-                document.getElementById('menu-settings-row').classList.add('hidden');
-                if (appState.unsubscribeFromLogs) {
-                    appState.unsubscribeFromLogs();
-                }
-            }
-
-            setupRegisteredButtons();
-
-            // Run author migration to uzeyirsalman@gmail.com
-            await migrateExistingRecipes();
-
-            listenForRecipes(router);
+            await setupAuthenticatedUser(user);
         } else {
-            // Guest User (anonymous or logged out)
-            appState.currentUserId = user ? user.uid : null;
-            appState.currentUserEmail = "Guest";
-            appState.isGoogleUser = false;
-            appState.showOnlyOwnRecipes = false; // Reset filter
-
-            // UI updates: Dynamic user section (clear & hide)
-            const userSection = document.getElementById('drawer-user-section');
-            if (userSection) {
-                userSection.innerHTML = '';
-                userSection.classList.add('hidden');
+            // Await redirect resolution to check if user just authenticated via redirect
+            const redirectResult = await redirectPromise;
+            if (redirectResult && redirectResult.user) {
+                console.log("Redirect authenticated user detected:", redirectResult.user.email);
+                await setupAuthenticatedUser(redirectResult.user);
+                return;
             }
 
-            // Auth UI: Toggle drawer buttons
-            document.getElementById('drawer-login-btn').classList.remove('hidden');
-            document.getElementById('drawer-logout-btn').classList.add('hidden');
-            
-            // Hide author-specific drawer menu actions
-            document.getElementById('menu-add-recipe-row').classList.add('hidden');
-            document.getElementById('menu-settings-row').classList.add('hidden');
-            document.getElementById('drawer-filter-section').classList.add('hidden');
-
-            if (appState.unsubscribeFromLogs) {
-                appState.unsubscribeFromLogs();
+            // In case auth.currentUser transitioned right after redirect
+            if (auth.currentUser && !auth.currentUser.isAnonymous) {
+                console.log("Current user transition detected:", auth.currentUser.email);
+                await setupAuthenticatedUser(auth.currentUser);
+                return;
             }
 
-            setupRegisteredButtons();
-
-            if (!user) {
-                // Await redirect resolution to avoid guest sign-in clobbering redirect auth
-                await redirectPromise;
-                if (!auth.currentUser) {
-                    try {
-                        await signInAnonymously(auth);
-                    } catch (error) {
-                        console.error("Anonymous authentication failed:", error);
-                        showNotification("Guest authentication failed.");
-                    }
-                }
-            } else {
-                listenForRecipes(router);
-            }
+            await setupGuestUser(user);
         }
     });
+}
+
+async function setupAuthenticatedUser(user) {
+    // Google Authenticated User (Author)
+    appState.currentUserId = user.uid;
+    appState.currentUserEmail = user.email || "Google User";
+    appState.isGoogleUser = true;
+
+    // UI updates: Dynamic user header section inside drawer
+    const userSection = document.getElementById('drawer-user-section');
+    if (userSection) {
+        userSection.classList.remove('hidden');
+        const userPhoto = user.photoURL || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z' fill='%236c757d'/%3E%3C/svg%3E";
+        userSection.innerHTML = `
+            <img class="user-avatar" src="${userPhoto}" alt="User Avatar" referrerpolicy="no-referrer">
+            <div class="drawer-user-info">
+                <span class="drawer-user-name">${user.displayName || "Google User"}</span>
+                <span class="drawer-user-email">${user.email}</span>
+            </div>
+        `;
+    }
+
+    // Auth UI: Toggle drawer buttons
+    document.getElementById('drawer-login-btn').classList.add('hidden');
+    document.getElementById('drawer-logout-btn').classList.remove('hidden');
+    
+    // Show author-specific drawer menu actions
+    document.getElementById('menu-add-recipe-row').classList.remove('hidden');
+    document.getElementById('drawer-filter-section').classList.remove('hidden');
+    const filterCheckbox = document.getElementById('own-recipes-filter');
+    if (filterCheckbox) {
+        filterCheckbox.checked = appState.showOnlyOwnRecipes;
+    }
+
+    // Settings gear & Log Listener EXCLUSIVE to Admin
+    if (appState.currentUserEmail === 'uzeyirsalman@gmail.com') {
+        document.getElementById('menu-settings-row').classList.remove('hidden');
+        listenForActivityLogs();
+    } else {
+        document.getElementById('menu-settings-row').classList.add('hidden');
+        if (appState.unsubscribeFromLogs) {
+            appState.unsubscribeFromLogs();
+        }
+    }
+
+    setupRegisteredButtons();
+
+    // Run author migration to uzeyirsalman@gmail.com
+    await migrateExistingRecipes();
+
+    listenForRecipes(router);
+}
+
+async function setupGuestUser(user) {
+    // Guest User (anonymous or logged out)
+    appState.currentUserId = user ? user.uid : null;
+    appState.currentUserEmail = "Guest";
+    appState.isGoogleUser = false;
+    appState.showOnlyOwnRecipes = false; // Reset filter
+
+    // UI updates: Dynamic user section (clear & hide)
+    const userSection = document.getElementById('drawer-user-section');
+    if (userSection) {
+        userSection.innerHTML = '';
+        userSection.classList.add('hidden');
+    }
+
+    // Auth UI: Toggle drawer buttons
+    document.getElementById('drawer-login-btn').classList.remove('hidden');
+    document.getElementById('drawer-logout-btn').classList.add('hidden');
+    
+    // Hide author-specific drawer menu actions
+    document.getElementById('menu-add-recipe-row').classList.add('hidden');
+    document.getElementById('menu-settings-row').classList.add('hidden');
+    document.getElementById('drawer-filter-section').classList.add('hidden');
+
+    if (appState.unsubscribeFromLogs) {
+        appState.unsubscribeFromLogs();
+    }
+
+    setupRegisteredButtons();
+
+    if (!user) {
+        if (!auth.currentUser) {
+            try {
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error("Anonymous authentication failed:", error);
+                showNotification("Guest authentication failed.");
+            }
+        }
+    } else {
+        listenForRecipes(router);
+    }
 }
 
 // --- REGISTER BUTTON EVENT LISTENERS ---
@@ -297,12 +323,20 @@ function setupRegisteredButtons() {
     });
 
     // Google Auth actions in Drawer
-    document.getElementById('drawer-login-btn').addEventListener('click', () => {
+    document.getElementById('drawer-login-btn').addEventListener('click', (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         toggleDrawer(false);
         handleGoogleSignIn();
     });
 
-    document.getElementById('drawer-logout-btn').addEventListener('click', () => {
+    document.getElementById('drawer-logout-btn').addEventListener('click', (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         toggleDrawer(false);
         handleSignOut();
     });
@@ -325,43 +359,34 @@ async function handleGoogleSignIn() {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
 
-    // Detect mobile and tablet browsers (including iPadOS which reports 'Macintosh' with touch support, plus CriOS/FxiOS)
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || 
                   (navigator.userAgent.includes('Macintosh') && navigator.maxTouchPoints > 1) ||
                   /CriOS|FxiOS|EdgiOS/i.test(navigator.userAgent);
     const isMobile = isIOS || /Android/i.test(navigator.userAgent);
 
-    if (isMobile) {
+    // Try popup first (fastest, keeps page state, works seamlessly on desktop and iPad)
+    try {
+        console.log("Attempting Firebase signInWithPopup on first-party authDomain...");
+        const result = await signInWithPopup(auth, provider);
+        console.log("Sign in success! User:", result.user.email);
+        showNotification("Signed in successfully!");
+    } catch (error) {
+        console.warn("signInWithPopup failed or blocked:", error.code || error.message);
+
+        // If explicitly closed by user on desktop, do not force a redirect
+        if (error.code === 'auth/popup-closed-by-user' && !isMobile) {
+            console.log("Popup was closed by user on desktop.");
+            return;
+        }
+
+        // Fall back to redirect if popup is blocked, closed on mobile, or unsupported
         try {
-            console.log("Mobile browser detected. Launching Firebase signInWithRedirect...");
+            console.log("Falling back to signInWithRedirect...");
             showNotification("Redirecting to Google Sign-In...");
             await signInWithRedirect(auth, provider);
-        } catch (error) {
-            console.error("Google signInWithRedirect failed:", error);
-            showNotification(`Sign in failed: ${error.message || error}`);
-        }
-    } else {
-        try {
-            console.log("Launching Firebase signInWithPopup...");
-            const result = await signInWithPopup(auth, provider);
-            console.log("Sign in success! User:", result.user.email);
-            showNotification("Signed in successfully!");
-        } catch (error) {
-            console.error("Google signInWithPopup failed:", error);
-            // If popup was blocked by browser or closed, fallback to redirect
-            if (error.code === 'auth/popup-blocked' || 
-                error.code === 'auth/cancelled-popup-request') {
-                try {
-                    console.log("Popup blocked. Falling back to signInWithRedirect...");
-                    showNotification("Redirecting to Google Sign-In...");
-                    await signInWithRedirect(auth, provider);
-                } catch (redirectErr) {
-                    console.error("Fallback redirect failed:", redirectErr);
-                    showNotification(`Sign in failed: ${redirectErr.message || redirectErr}`);
-                }
-            } else {
-                showNotification(`Sign in failed: ${error.message || error}`);
-            }
+        } catch (redirectErr) {
+            console.error("signInWithRedirect fallback also failed:", redirectErr);
+            showNotification(`Sign in failed: ${redirectErr.message || redirectErr}`);
         }
     }
 }
