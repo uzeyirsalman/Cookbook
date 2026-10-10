@@ -1125,42 +1125,73 @@ header.search-active .header-left {
     color: var(--primary-text);
 }
 
-/* --- User profile panel --- */
+/* --- User profile panel & Guest Sign-In panel --- */
 .drawer-user-section {
     display: flex;
     align-items: center;
-    gap: 0.85rem;
-    padding: 1.25rem 1.5rem;
-    background-color: rgba(255, 255, 255, 0.4);
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    background-color: rgba(255, 255, 255, 0.45);
     border-bottom: 1px solid var(--border);
 }
-.drawer-user-section.hidden {
-    display: none !important;
+.drawer-user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+    flex: 1;
 }
 .drawer-user-section .user-avatar {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
-}
-.drawer-user-info {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+    flex-shrink: 0;
 }
 .drawer-user-name {
-    font-size: 0.85rem;
-    color: var(--secondary-text);
-    font-weight: 600;
-}
-.drawer-user-email {
     font-size: 0.95rem;
     color: var(--primary-text);
     font-weight: 700;
+    font-family: 'Outfit', sans-serif;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+}
+.drawer-logout-compact-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem 0.85rem;
+    border-radius: 8px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    background-color: rgba(239, 68, 68, 0.06);
+    color: var(--danger, #ef4444);
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all var(--transition-speed) ease;
+}
+.drawer-logout-compact-btn:hover {
+    background-color: var(--danger, #ef4444);
+    border-color: var(--danger, #ef4444);
+    color: #ffffff;
+}
+.drawer-logout-compact-btn:active {
+    transform: scale(0.96);
+}
+
+.drawer-guest-section {
+    padding: 1rem 1.25rem;
+    background-color: rgba(255, 255, 255, 0.4);
+    border-bottom: 1px solid var(--border);
+}
+.drawer-user-section.hidden,
+.drawer-guest-section.hidden {
+    display: none !important;
 }
 
 /* --- Drawer Drawer Actions Menu --- */

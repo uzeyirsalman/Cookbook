@@ -101,16 +101,15 @@ function handleAuthentication() {
             if (userSection) {
                 userSection.classList.remove('hidden');
                 const userPhoto = user.photoURL || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z' fill='%236c757d'/%3E%3C/svg%3E";
-                userSection.innerHTML = `
-                    <img class="user-avatar" src="${userPhoto}" alt="User Avatar" referrerpolicy="no-referrer">
-                    <div class="drawer-user-info">
-                        <span class="drawer-user-name">${user.displayName || "Google User"}</span>
-                        <span class="drawer-user-email">${user.email}</span>
-                    </div>
-                `;
+                const avatarEl = document.getElementById('drawer-user-avatar');
+                if (avatarEl) avatarEl.src = userPhoto;
+                const nameEl = document.getElementById('drawer-user-name');
+                if (nameEl) nameEl.textContent = user.displayName || "Google User";
             }
 
-            // Auth UI: Toggle drawer buttons
+            // Auth UI: Toggle drawer buttons & sections
+            const guestSection = document.getElementById('drawer-guest-section');
+            if (guestSection) guestSection.classList.add('hidden');
             document.getElementById('drawer-login-btn').classList.add('hidden');
             document.getElementById('drawer-logout-btn').classList.remove('hidden');
             
@@ -149,11 +148,12 @@ function handleAuthentication() {
             // UI updates: Dynamic user section (clear & hide)
             const userSection = document.getElementById('drawer-user-section');
             if (userSection) {
-                userSection.innerHTML = '';
                 userSection.classList.add('hidden');
             }
 
-            // Auth UI: Toggle drawer buttons
+            // Auth UI: Toggle drawer buttons & sections
+            const guestSection = document.getElementById('drawer-guest-section');
+            if (guestSection) guestSection.classList.remove('hidden');
             document.getElementById('drawer-login-btn').classList.remove('hidden');
             document.getElementById('drawer-logout-btn').classList.add('hidden');
             
