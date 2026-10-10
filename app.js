@@ -228,19 +228,45 @@ function setupRegisteredButtons() {
     const menuBackdrop = document.getElementById('menu-backdrop');
     const navDrawer = document.getElementById('nav-drawer');
 
+    let lastDrawerOpenTime = 0;
     const toggleDrawer = (open) => {
         if (open) {
+            lastDrawerOpenTime = Date.now();
             navDrawer.classList.remove('hidden');
             menuBackdrop.classList.remove('hidden');
         } else {
+            // Guard against ghost/synthetic touch clicks immediately closing drawer within 350ms
+            if (Date.now() - lastDrawerOpenTime < 350) return;
             navDrawer.classList.add('hidden');
             menuBackdrop.classList.add('hidden');
         }
     };
 
-    if (menuToggle) menuToggle.addEventListener('click', () => toggleDrawer(true));
-    if (menuClose) menuClose.addEventListener('click', () => toggleDrawer(false));
-    if (menuBackdrop) menuBackdrop.addEventListener('click', () => toggleDrawer(false));
+    if (menuToggle) {
+        menuToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleDrawer(true);
+        });
+    }
+    if (menuClose) {
+        menuClose.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleDrawer(false);
+        });
+    }
+    if (menuBackdrop) {
+        menuBackdrop.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleDrawer(false);
+        });
+    }
+    if (navDrawer) {
+        navDrawer.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
 
     // Drawer Menu Actions (Dismisses drawer after click)
     document.getElementById('menu-add-recipe-btn').addEventListener('click', () => {
@@ -299,8 +325,11 @@ async function handleGoogleSignIn() {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
 
-    // Detect mobile browsers (iOS / Android) where popups are blocked or fail in WebKit
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    // Detect mobile and tablet browsers (including iPadOS which reports 'Macintosh' with touch support, plus CriOS/FxiOS)
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || 
+                  (navigator.userAgent.includes('Macintosh') && navigator.maxTouchPoints > 1) ||
+                  /CriOS|FxiOS|EdgiOS/i.test(navigator.userAgent);
+    const isMobile = isIOS || /Android/i.test(navigator.userAgent);
 
     if (isMobile) {
         try {
