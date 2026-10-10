@@ -5,6 +5,8 @@ import {
     signInAnonymously, 
     signInWithCustomToken,
     signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
     GoogleAuthProvider,
     signOut
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -89,6 +91,23 @@ function setupScrollListener() {
 }
 
 function handleAuthentication() {
+    // Check for redirect sign-in result (mobile Google sign in)
+    const redirectPromise = getRedirectResult(auth)
+        .then((result) => {
+            if (result && result.user) {
+                console.log("Redirect sign in success! User:", result.user.email);
+                showNotification("Signed in successfully!");
+            }
+            return result;
+        })
+        .catch((error) => {
+            console.error("Google redirect sign in error:", error);
+            if (error && error.code) {
+                showNotification(`Sign in failed: ${error.message || error}`);
+            }
+            return null;
+        });
+
     onAuthStateChanged(auth, async (user) => {
         if (user && !user.isAnonymous) {
             // Google Authenticated User (Author)
@@ -169,11 +188,15 @@ function handleAuthentication() {
             setupRegisteredButtons();
 
             if (!user) {
-                try {
-                    await signInAnonymously(auth);
-                } catch (error) {
-                    console.error("Anonymous authentication failed:", error);
-                    showNotification("Guest authentication failed.");
+                // Await redirect resolution to avoid guest sign-in clobbering redirect auth
+                await redirectPromise;
+                if (!auth.currentUser) {
+                    try {
+                        await signInAnonymously(auth);
+                    } catch (error) {
+                        console.error("Anonymous authentication failed:", error);
+                        showNotification("Guest authentication failed.");
+                    }
                 }
             } else {
                 listenForRecipes(router);
@@ -274,14 +297,43 @@ function setupRegisteredButtons() {
 async function handleGoogleSignIn() {
     console.log("handleGoogleSignIn triggered by click!");
     const provider = new GoogleAuthProvider();
-    try {
-        console.log("Launching Firebase signInWithPopup...");
-        const result = await signInWithPopup(auth, provider);
-        console.log("Sign in success! User:", result.user.email);
-        showNotification("Signed in successfully!");
-    } catch (error) {
-        console.error("Google sign in failed:", error);
-        showNotification(`Sign in failed: ${error.message || error}`);
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    // Detect mobile browsers (iOS / Android) where popups are blocked or fail in WebKit
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+        try {
+            console.log("Mobile browser detected. Launching Firebase signInWithRedirect...");
+            showNotification("Redirecting to Google Sign-In...");
+            await signInWithRedirect(auth, provider);
+        } catch (error) {
+            console.error("Google signInWithRedirect failed:", error);
+            showNotification(`Sign in failed: ${error.message || error}`);
+        }
+    } else {
+        try {
+            console.log("Launching Firebase signInWithPopup...");
+            const result = await signInWithPopup(auth, provider);
+            console.log("Sign in success! User:", result.user.email);
+            showNotification("Signed in successfully!");
+        } catch (error) {
+            console.error("Google signInWithPopup failed:", error);
+            // If popup was blocked by browser or closed, fallback to redirect
+            if (error.code === 'auth/popup-blocked' || 
+                error.code === 'auth/cancelled-popup-request') {
+                try {
+                    console.log("Popup blocked. Falling back to signInWithRedirect...");
+                    showNotification("Redirecting to Google Sign-In...");
+                    await signInWithRedirect(auth, provider);
+                } catch (redirectErr) {
+                    console.error("Fallback redirect failed:", redirectErr);
+                    showNotification(`Sign in failed: ${redirectErr.message || redirectErr}`);
+                }
+            } else {
+                showNotification(`Sign in failed: ${error.message || error}`);
+            }
+        }
     }
 }
 

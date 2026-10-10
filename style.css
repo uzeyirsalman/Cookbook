@@ -1054,6 +1054,7 @@ header.search-active .header-left {
     left: 0;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     background-color: rgba(15, 23, 42, 0.2);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -1073,17 +1074,20 @@ header.search-active .header-left {
     right: 0;
     width: 320px;
     max-width: 85vw;
+    height: 100%;
     height: 100vh;
-    background-color: rgba(255, 255, 255, 0.75);
+    height: 100dvh;
+    background-color: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border-left: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: -10px 0 30px rgba(15, 23, 42, 0.05);
+    box-shadow: -10px 0 30px rgba(15, 23, 42, 0.08);
     z-index: 1050;
     display: flex;
     flex-direction: column;
     transform: translateX(0);
     transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    overscroll-behavior: contain;
 }
 .nav-drawer.hidden {
     transform: translateX(100%);
@@ -1097,7 +1101,9 @@ header.search-active .header-left {
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem;
+    padding-top: calc(1.5rem + env(safe-area-inset-top, 0px));
     border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
 }
 .drawer-title {
     margin: 0;
@@ -1166,7 +1172,9 @@ header.search-active .header-left {
 /* --- Drawer Drawer Actions Menu --- */
 .drawer-content {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 1.25rem;
     display: flex;
     flex-direction: column;
@@ -1313,27 +1321,32 @@ header.search-active .header-left {
 /* --- Drawer Footer --- */
 .drawer-footer {
     padding: 1.25rem;
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--border);
-    background-color: rgba(255, 255, 255, 0.4);
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    flex-shrink: 0;
 }
 .drawer-auth-btn {
     width: 100%;
-    padding: 0.8rem;
+    padding: 0.85rem 1rem;
     border: 1px solid transparent;
-    border-radius: 10px;
+    border-radius: 12px;
     font-weight: 700;
     font-family: 'Outfit', sans-serif;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.65rem;
     font-size: 0.95rem;
     box-sizing: border-box;
     transition: 
         background-color var(--transition-speed) ease, 
         border-color var(--transition-speed) ease, 
         color var(--transition-speed) ease, 
+        box-shadow var(--transition-speed) ease, 
         transform 0.1s ease;
 }
 .drawer-auth-btn:active {
@@ -1344,14 +1357,22 @@ header.search-active .header-left {
 }
 
 .login-btn.drawer-auth-btn {
-    background-color: rgba(79, 70, 229, 0.08);
-    border-color: rgba(79, 70, 229, 0.15);
-    color: var(--accent);
+    background: #ffffff;
+    border: 1.5px solid rgba(148, 163, 184, 0.35);
+    color: #1e293b;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
 }
 .login-btn.drawer-auth-btn:hover {
-    background-color: var(--accent);
-    border-color: var(--accent);
-    color: white;
+    background-color: #f8fafc;
+    border-color: rgba(79, 70, 229, 0.4);
+    color: var(--accent);
+    box-shadow: 0 6px 18px rgba(79, 70, 229, 0.12);
+    transform: translateY(-1px);
+}
+.login-btn.drawer-auth-btn .google-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
 }
 
 .logout-btn.drawer-auth-btn {
