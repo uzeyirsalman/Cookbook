@@ -1,84 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cookbook</title>
-    <!-- Favicon: Stylized Pot -->
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M15 45 Q50 95 85 45 L85 35 L15 35 Z' fill='%23e7d083' stroke='%23212529' stroke-width='4'/%3E%3Cpath d='M30 25 Q30 5 40 15 T50 15' fill='none' stroke='%23495057' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M55 25 Q55 5 65 15 T75 15' fill='none' stroke='%23495057' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="light only">
+    <meta name="theme-color" content="#FAF9F6">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="CookBook">
+    <meta name="description" content="Clean, simple culinary recipe collection">
+    <title>CookBook</title>
+
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Link to external stylesheet -->
-    <link rel="stylesheet" href="style.css?v=20261010-card">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- External Stylesheet -->
+    <link rel="stylesheet" href="/style.css?v=20261017-v4">
 </head>
 <body>
-    <div class="main-wrapper">
+    <div class="app-shell">
         <header id="main-header">
-            <!-- Merged Logo and Home Button -->
-            <div class="header-left" id="home-btn" role="button" aria-label="Home">
-                <!-- Modern Premium SVG Logo: Culinary Magic Cloche -->
-                <svg class="app-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-                    <defs>
-                        <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#4f46e5" />
-                            <stop offset="100%" stop-color="#ec4899" />
-                        </linearGradient>
-                        <linearGradient id="sparkle-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#f59e0b" />
-                            <stop offset="100%" stop-color="#f43f5e" />
-                        </linearGradient>
-                    </defs>
-                    <!-- Background Soft Glow Circle -->
-                    <circle cx="50" cy="50" r="46" fill="rgba(79, 70, 229, 0.05)" stroke="rgba(79, 70, 229, 0.12)" stroke-width="1.5" />
-                    <!-- Sparkles/Magic (Culinary Excellence) -->
-                    <path d="M 26 28 Q 30 28 30 24 Q 30 28 34 28 Q 30 28 30 32 Q 30 28 26 28 Z" fill="url(#sparkle-grad)" />
-                    <path d="M 70 24 Q 73 24 73 21 Q 73 24 76 24 Q 73 24 73 27 Q 73 24 70 24 Z" fill="url(#sparkle-grad)" />
-                    <path d="M 76 38 Q 78 38 78 36 Q 78 38 80 38 Q 78 38 78 40 Q 78 38 76 38 Z" fill="url(#sparkle-grad)" />
-                    <!-- Chef's Cloche / Food Cover -->
-                    <!-- Tray/Plate base -->
-                    <path d="M 20 70 Q 50 73 80 70 A 2 2 0 0 0 80 66 Q 50 69 20 66 A 2 2 0 0 0 20 70 Z" fill="url(#logo-grad)" />
-                    <!-- Dome Cover -->
-                    <path d="M 26 62 Q 26 35 50 35 Q 74 35 74 62 Z" fill="url(#logo-grad)" opacity="0.9" />
-                    <!-- Handle -->
-                    <circle cx="50" cy="30" r="4.5" fill="url(#logo-grad)" />
-                    <!-- Shine Highlight -->
-                    <path d="M 34 58 A 20 20 0 0 1 50 41" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.45" />
-                </svg>
-                <h1 class="app-title"><span class="title-light">Cook</span><span class="title-bold">Book</span></h1>
-            </div>
-
-            <div class="header-right">
-                <!-- Search Button and Input -->
-                <div id="search-container" class="search-container">
-                    <button id="search-btn" class="header-btn search-btn" aria-label="Search Recipes">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    </button>
-                    <input type="text" id="search-input" class="search-input" placeholder="Search...">
+            <div class="header-inner">
+                <!-- Brand / Home Button -->
+                <div class="header-left" id="home-btn" role="button" tabindex="0" aria-label="Home">
+                    <div class="brand-mark" aria-hidden="true">
+                        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="18" cy="10.5" r="2" fill="currentColor"/>
+                            <path d="M7.5 22.5C7.5 16.2 12 13 18 13C24 13 28.5 16.2 28.5 22.5H7.5Z" fill="currentColor"/>
+                            <rect x="5.5" y="24.5" width="25" height="2.4" rx="1.2" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <h1 class="app-title">Cook<span>Book</span></h1>
                 </div>
 
-                <!-- Hamburger Menu Toggle Button -->
-                <button id="menu-toggle-btn" class="header-btn menu-toggle-btn" aria-label="Open Navigation Menu">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="3" y1="12" x2="21" y2="12"></line>
-                        <line x1="3" y1="6" x2="21" y2="6"></line>
-                        <line x1="3" y1="18" x2="21" y2="18"></line>
-                    </svg>
-                </button>
+                <!-- Expandable / Live Search & Menu Controls -->
+                <div class="header-right">
+                    <div id="search-container" class="search-container">
+                        <button id="search-btn" type="button" class="icon-btn search-trigger-btn" aria-label="Search Recipes">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        </button>
+                        <div class="search-input-wrap">
+                            <svg class="search-field-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <input type="search" id="search-input" class="search-input" placeholder="Search recipes, ingredients, tags..." autocomplete="off" enterkeyhint="search">
+                            <button id="search-clear-btn" type="button" class="search-clear-btn hidden" aria-label="Clear search">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button id="menu-toggle-btn" type="button" class="icon-btn menu-toggle-btn" aria-label="Open Navigation Menu">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="4" y1="7" x2="20" y2="7"></line>
+                            <line x1="4" y1="12" x2="20" y2="12"></line>
+                            <line x1="4" y1="17" x2="20" y2="17"></line>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </header>
 
-        <!-- Modern Slide-out Navigation Drawer Overlay Backdrop -->
+        <!-- Slide-out Navigation Drawer Backdrop -->
         <div id="menu-backdrop" class="menu-backdrop hidden"></div>
-        
-        <!-- Modern Slide-out Navigation Drawer -->
-        <aside id="nav-drawer" class="nav-drawer hidden">
+
+        <!-- Slide-out Navigation Drawer -->
+        <aside id="nav-drawer" class="nav-drawer hidden" aria-label="Navigation Menu">
             <div class="drawer-header">
                 <h2 class="drawer-title">Menu</h2>
-                <button id="menu-close-btn" class="drawer-close-btn" aria-label="Close Menu">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                <button id="menu-close-btn" type="button" class="icon-btn drawer-close-btn" aria-label="Close Menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
 
@@ -86,7 +83,10 @@
             <div id="drawer-user-section" class="drawer-user-section hidden">
                 <div class="drawer-user-profile">
                     <img id="drawer-user-avatar" class="user-avatar" src="" alt="User Avatar" referrerpolicy="no-referrer">
-                    <span id="drawer-user-name" class="drawer-user-name"></span>
+                    <div class="drawer-user-meta">
+                        <span id="drawer-user-name" class="drawer-user-name"></span>
+                        <span class="drawer-user-badge">Signed in</span>
+                    </div>
                 </div>
                 <button id="drawer-logout-btn" type="button" class="drawer-logout-compact-btn">Sign Out</button>
             </div>
@@ -94,36 +94,35 @@
             <!-- Top Sign In Container (Shown when Guest / Signed Out) -->
             <div id="drawer-guest-section" class="drawer-guest-section">
                 <button id="drawer-login-btn" type="button" class="drawer-auth-btn login-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     Sign In with Google
                 </button>
             </div>
 
             <div class="drawer-content">
-                <!-- Action Items List -->
                 <ul class="drawer-menu-list">
                     <li id="menu-add-recipe-row" class="drawer-menu-item hidden">
-                        <button id="menu-add-recipe-btn" class="drawer-action-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <button id="menu-add-recipe-btn" type="button" class="drawer-action-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             Add New Recipe
                         </button>
                     </li>
                     <li class="drawer-menu-item">
-                        <button id="menu-random-recipe-btn" class="drawer-action-btn">
-                            <span>🎲</span>
-                            Random Recipe
+                        <button id="menu-random-recipe-btn" type="button" class="drawer-action-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" ry="3"></rect><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"></circle><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"></circle><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"></circle><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor"></circle><circle cx="12" cy="12" r="1.2" fill="currentColor"></circle></svg>
+                            Surprise Me (Random)
                         </button>
                     </li>
                     <li class="drawer-menu-item">
-                        <button id="menu-fmd-btn" class="drawer-action-btn">
-                            <span>⏱️</span>
+                        <button id="menu-fmd-btn" type="button" class="drawer-action-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2.5"></path><path d="M9 3h6"></path></svg>
                             Fast Mimicking Diet (FMD)
                         </button>
                     </li>
                     <li id="menu-settings-row" class="drawer-menu-item hidden">
-                        <button id="menu-settings-btn" class="drawer-action-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                            Backup & Database
+                        <button id="menu-settings-btn" type="button" class="drawer-action-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+                            Backup &amp; Database
                         </button>
                     </li>
                 </ul>
@@ -140,101 +139,136 @@
             </div>
         </aside>
 
-        <div id="loader"></div>
+        <!-- Main Content Container -->
+        <div class="main-wrapper">
+            <div id="loader" aria-label="Loading recipes"></div>
 
-        <!-- Views will be dynamically swapped here -->
-        <main id="tag-list-container">
-            <!-- Sleek Category Card Style Controls -->
-            <div id="category-controls-bar" class="category-controls-bar"></div>
-            <!-- Grid list of tags -->
-            <div id="tag-grid" class="tag-grid"></div>
-        </main>
-        <main id="recipe-list-container" class="hidden">
-            <!-- Content will be generated by JS -->
-            <div id="recipe-list"></div>
-        </main>
-        <!-- Search Results View -->
-        <main id="search-results-container" class="hidden">
-            <!-- Search results will be generated by JS -->
-        </main>
-        <main id="recipe-detail-container" class="hidden">
-            <!-- Content will be generated by JS -->
-            <div id="recipe-detail"></div>
-        </main>
-        <main id="recipe-form-container" class="hidden">
-            <form id="recipe-form">
-                <h2 id="form-mode-title">Add a New Recipe</h2>
-                <div class="form-group">
-                    <label for="recipe-title">Title</label>
-                    <input type="text" id="recipe-title" placeholder="e.g., Classic Lasagna" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="recipe-tags">Tags</label>
-                    <input type="text" id="recipe-tags" placeholder="e.g., Pasta, Italian, Dinner" required>
-                </div>
+            <!-- Categories Home View -->
+            <main id="tag-list-container" class="view-container"></main>
 
-                <div class="form-group">
-                    <label for="recipe-ingredients">Ingredients</label>
-                    <textarea id="recipe-ingredients" placeholder="Enter each ingredient on a new line..." required></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="recipe-instructions">Instructions</label>
-                    <textarea id="recipe-instructions" placeholder="Enter the cooking instructions step-by-step..." required></textarea>
-                </div>
-                
-                <button type="submit" id="save-button" class="form-button">Save Recipe</button>
-            </form>
-        </main>
+            <!-- Category Recipe List View -->
+            <main id="recipe-list-container" class="view-container hidden">
+                <div id="recipe-list"></div>
+            </main>
+
+            <!-- Search Results View -->
+            <main id="search-results-container" class="view-container hidden"></main>
+
+            <!-- Recipe Detail View -->
+            <main id="recipe-detail-container" class="view-container hidden">
+                <div id="recipe-detail"></div>
+            </main>
+
+            <!-- Add / Edit Recipe Form View -->
+            <main id="recipe-form-container" class="view-container hidden">
+                <form id="recipe-form">
+                    <div class="form-header">
+                        <button type="button" id="form-cancel-btn" class="back-pill-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                            <span id="form-cancel-label">Cancel Edit</span>
+                        </button>
+                        <h2 id="form-mode-title" class="hidden">Add a New Recipe</h2>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="recipe-title">Recipe Title</label>
+                        <input type="text" id="recipe-title" placeholder="e.g., Classic Lasagna" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="recipe-tags">Categories / Tags</label>
+                        <input type="text" id="recipe-tags" placeholder="e.g., Italian, Pasta, Oven" required>
+                        <span class="field-hint">Separate multiple tags with commas</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="recipe-ingredients">Ingredients</label>
+                        <textarea id="recipe-ingredients" placeholder="Enter each ingredient on a new line..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="recipe-instructions">Instructions</label>
+                        <textarea id="recipe-instructions" placeholder="Enter the cooking steps (one step per line)..." required></textarea>
+                    </div>
+
+                    <button type="submit" id="save-button" class="form-button">Save Recipe</button>
+                </form>
+            </main>
+        </div>
+
+        <!-- Mobile Bottom Navigation Bar (Thumb-Zone Optimized for Pixel 9a) -->
+        <nav id="bottom-nav" class="bottom-nav" aria-label="Primary Mobile Navigation">
+            <button type="button" id="nav-home-btn" class="bottom-nav-item active" data-nav="home">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                <span>Categories</span>
+            </button>
+            <button type="button" id="nav-search-btn" class="bottom-nav-item" data-nav="search">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <span>Search</span>
+            </button>
+            <button type="button" id="nav-random-btn" class="bottom-nav-item" data-nav="random">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" ry="3"></rect><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"></circle><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"></circle><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"></circle><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor"></circle><circle cx="12" cy="12" r="1.2" fill="currentColor"></circle></svg>
+                <span>Random</span>
+            </button>
+            <button type="button" id="nav-fmd-btn" class="bottom-nav-item" data-nav="fmd">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2.5"></path><path d="M9 3h6"></path></svg>
+                <span>FMD</span>
+            </button>
+            <button type="button" id="nav-menu-btn" class="bottom-nav-item" data-nav="menu">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.5" fill="currentColor"></circle><circle cx="19" cy="12" r="1.5" fill="currentColor"></circle><circle cx="5" cy="12" r="1.5" fill="currentColor"></circle></svg>
+                <span>More</span>
+            </button>
+        </nav>
     </div>
-    <div id="notification"></div>
-    
+
+    <div id="notification" role="status" aria-live="polite"></div>
+
+    <!-- Delete Confirmation Modal -->
     <div id="custom-modal" class="modal-overlay hidden">
         <div class="modal-content">
-            <h3 id="modal-title">Are you sure?</h3>
+            <h3 id="modal-title">Delete Recipe?</h3>
             <p id="modal-message">Do you really want to delete this recipe? This action cannot be undone.</p>
             <div class="modal-actions">
-                <button id="modal-confirm-btn" class="action-button delete-btn">Delete</button>
-                <button id="modal-cancel-btn" class="action-button">Cancel</button>
+                <button id="modal-cancel-btn" type="button" class="action-button secondary-btn">Cancel</button>
+                <button id="modal-confirm-btn" type="button" class="action-button delete-btn">Delete</button>
             </div>
         </div>
     </div>
 
-    <!-- settings modal for local backup and restore -->
+    <!-- Settings Modal for Local Backup and Restore -->
     <div id="settings-modal" class="modal-overlay hidden">
         <div class="modal-content">
-            <h3>Backup & Restore</h3>
-            <p style="color: var(--secondary-text); margin-bottom: 1.5rem; font-size: 0.9rem;">
-                Manage your cookbook database. Export recipes to JSON or import from an existing backup.
+            <h3>Backup &amp; Restore</h3>
+            <p class="modal-subtitle">
+                Export your cookbook recipes to JSON or restore from an existing backup file.
             </p>
-            <div class="settings-actions" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                <button id="export-backup-btn" class="form-button" style="background-color: var(--accent);">📥 Export Recipes (JSON)</button>
-                
-                <div style="border-top: 1px solid var(--border); margin: 0.5rem 0; padding-top: 1rem;">
+            <div class="settings-actions">
+                <button id="export-backup-btn" type="button" class="form-button accent-btn">Export Recipes (JSON)</button>
+
+                <div class="settings-divider">
                     <label for="import-file-input" class="import-label-btn">
-                        📤 Import Recipes (JSON)
+                        Import Recipes (JSON)
                     </label>
                     <input type="file" id="import-file-input" accept=".json" class="hidden">
                 </div>
             </div>
             <div id="import-status" class="import-status"></div>
-            
-            <!-- In-app Activity Log timeline -->
-            <div style="border-top: 1px solid var(--border); margin: 1.25rem 0 0 0; padding-top: 1rem; text-align: left;">
-                <h4 style="margin: 0 0 0.5rem 0; font-weight: 700; font-size: 0.95rem; color: var(--primary-text);">Recent Activity Log</h4>
-                <div id="activity-log-list" style="max-height: 140px; overflow-y: auto; font-size: 0.8rem; background: var(--background); border: 1px solid var(--border); padding: 0.5rem; border-radius: 8px; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <div style="color: var(--secondary-text);">Loading activity logs...</div>
+
+            <!-- In-app Activity Log Timeline -->
+            <div class="activity-log-section">
+                <h4 class="activity-log-heading">Recent Activity</h4>
+                <div id="activity-log-list">
+                    <div class="activity-log-empty">Loading activity logs...</div>
                 </div>
             </div>
 
-            <div class="modal-actions" style="margin-top: 1.5rem; display: flex; justify-content: center;">
-                <button id="settings-close-btn" class="action-button">Close</button>
+            <div class="modal-actions">
+                <button id="settings-close-btn" type="button" class="action-button secondary-btn">Close</button>
             </div>
         </div>
     </div>
-    
-    <!-- Link to external JS modules -->
-    <script type="module" src="app.js?v=20261010-card"></script>
+
+    <!-- External JS Module -->
+    <script type="module" src="/app.js?v=20261017-v3"></script>
 </body>
 </html>
